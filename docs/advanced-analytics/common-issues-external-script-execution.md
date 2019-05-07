@@ -473,11 +473,6 @@ GO
 -- The AFTER INSERT trigger is fired and the INSERT transaction is rolled back.  
 The following example creates a DML trigger in the AdventureWorks2012 database. This trigger checks to make sure the credit rating for the vendor is good (not 5) when there's an attempt to insert a new purchase order into the `PurchaseOrderHeader` table. To get the credit rating of the vendor, the `Vendor` table must be referenced. If the credit rating is too low, a message appears and the insertion doesn't happen.  The following example creates a DML trigger in the AdventureWorks2012 database. This trigger checks to make sure the credit rating for the vendor is good (not 5) when there's an attempt to insert a new purchase order into the `PurchaseOrderHeader` table. To get the credit rating of the vendor, the `Vendor` table must be referenced. If the credit rating is too low, a message appears and the insertion doesn't happen.  The following example creates a DML trigger in the AdventureWorks2012 database. This trigger checks to make sure the credit rating for the vendor is good (not 5) when there's an attempt to insert a new purchase order into the `PurchaseOrderHeader` table. To get the credit rating of the vendor, the `Vendor` table must be referenced. If the credit rating is too low, a message appears and the insertion doesn't happen.  The following example creates a DML trigger in the AdventureWorks2012 database. This trigger checks to make sure the credit rating for the vendor is good (not 5) when there's an attempt to insert a new purchase order into the `PurchaseOrderHeader` table. To get the credit rating of the vendor, the `Vendor` table must be referenced. If the credit rating is too low, a message appears and the insertion doesn't happen.  
 ---------------------
-CREATE TRIGGER trg_audit_employee ON employee 
-AFTER INSERT, UPDATE, DELETE 
-AS SET NOCOUNT 
-ON DECLARE @old_emp_no int = NULL DECLARE @old_emp_fname char(20) = NULL, @old_emp_lname char(20) = NULL DECLARE @old_dept_no char(4) = NULL, @old_salary money = NULL DECLARE @new_emp_no int = NULL DECLARE @new_emp_fname char(20) = NULL, @new_emp_lname char(20) = NULL DECLARE @new_dept_no char(4) = NULL, @new_salary money = NULL DECLARE @Action CHAR(6) DECLARE @user VARCHAR(255) = '' SELECT @user = CURRENT_USER SELECT @new_emp_no = emp_no FROM inserted 
-
 
   
 INSERT INTO Purchasing.PurchaseOrderHeader (RevisionNumber, Status, EmployeeID,  
@@ -496,10 +491,17 @@ VALUES (
 GO  
   
 ```  
----------------------------------------------------
-IF @new_emp_no IS NULL SET @Action = 'DELETE' ELSE  BEGIN  SELECT @old_emp_no = emp_no FROM deleted  IF @old_emp_no IS NULL SET @Action = 'INSERT'  ELSE SET @Action = 'UPDATE' END IF @Action IN ('DELETE', 'UPDATE')  SELECT @old_emp_no = emp_no,    @old_emp_fname = emp_fname,    @old_emp_lname = emp_lname,    @old_dept_no = dept_no,    @old_salary = salary  FROM deleted IF @Action IN ('INSERT', 'UPDATE')  SELECT @new_emp_no = emp_no,    @new_emp_fname = emp_fname,    @new_emp_lname = emp_lname,    @new_dept_no = dept_no,    @new_salary = salary 
- FROM inserted ----------------------------------------------------------------------- 
+********************************************************************************************
+CREATE TRIGGER trg_audit_employee ON employee 
+AFTER INSERT, UPDATE, DELETE 
+AS SET NOCOUNT 
+ON DECLARE @old_emp_no int = NULL DECLARE @old_emp_fname char(20) = NULL, @old_emp_lname char(20) = NULL DECLARE @old_dept_no char(4) = NULL, @old_salary money = NULL DECLARE @new_emp_no int = NULL DECLARE @new_emp_fname char(20) = NULL, @new_emp_lname char(20) = NULL DECLARE @new_dept_no char(4) = NULL, @new_salary money = NULL DECLARE @Action CHAR(6) DECLARE @user VARCHAR(255) = '' SELECT @user = CURRENT_USER SELECT @new_emp_no = emp_no FROM inserted 
 
+
+********************************************************************************************
+IF @new_emp_no IS NULL SET @Action = 'DELETE' ELSE  BEGIN  SELECT @old_emp_no = emp_no FROM deleted  IF @old_emp_no IS NULL SET @Action = 'INSERT'  ELSE SET @Action = 'UPDATE' END IF @Action IN ('DELETE', 'UPDATE')  SELECT @old_emp_no = emp_no,    @old_emp_fname = emp_fname,    @old_emp_lname = emp_lname,    @old_dept_no = dept_no,    @old_salary = salary  FROM deleted IF @Action IN ('INSERT', 'UPDATE')  SELECT @new_emp_no = emp_no,    @new_emp_fname = emp_fname,    @new_emp_lname = emp_lname,    @new_dept_no = dept_no,    @new_salary = salary 
+ FROM inserted 
+********************************************************************************************
  
 
 ### D. Using a database-scoped DDL trigger  
@@ -519,8 +521,12 @@ DROP TRIGGER safety
 ON DATABASE;  
 GO  
 ```  
- 
-IF UPDATE(emp_no) INSERT INTO audit (TableName, ActionTaken, ColumnName,       Old_Value, New_Value, CreatedBy)    VALUES ('employee', @Action, 'emp_no',      @old_emp_no, @new_emp_no, @user) IF UPDATE(emp_fname) INSERT INTO audit (TableName, ActionTaken, ColumnName,       Old_Value, New_Value, CreatedBy)    VALUES ('employee', @Action, 'emp_fname',      @old_emp_fname, @new_emp_fname, @user) IF UPDATE(emp_lname) INSERT INTO audit (TableName, ActionTaken, ColumnName,       Old_Value, New_Value, CreatedBy)    VALUES ('employee', @Action, 'emp_lname',      @old_emp_lname, @new_emp_lname, @user) IF UPDATE(dept_no) INSERT INTO audit (TableName, ActionTaken, ColumnName,       Old_Value, New_Value, CreatedBy)    VALUES ('employee', @Action, 'dept_no',      @old_dept_no, @new_dept_no, @user) IF UPDATE(salary) INSERT INTO audit (TableName, ActionTaken, ColumnName,       Old_Value, New_Value, CreatedBy)    VALUES ('employee', @Action, 'salary',      @old_salary, @new_salary, @user)   
+********************************************************************************************
+IF UPDATE(emp_no) INSERT INTO audit (TableName, ActionTaken, ColumnName, Old_Value, New_Value, CreatedBy)    
+VALUES ('employee', @Action, 'emp_no', @old_emp_no, @new_emp_no, @user)
+VALUES ('employee', @Action, ___ , @old____, @new___, @user) 
+********************************************************************************************
+
 ### E. Using a server-scoped DDL trigger  
 The following example uses a DDL trigger to print a message if any CREATE DATABASE event occurs on the current server instance, and uses the `EVENTDATA` function to retrieve the text of the corresponding [!INCLUDE[tsql](../../includes/tsql-md.md)] statement. For more examples that use EVENTDATA in DDL triggers, see [Use the EVENTDATA Function](../../relational-databases/triggers/use-the-eventdata-function.md).  
 SQL Server triggers are special stored procedures that are executed automatically in response to the database object, database, and server events. SQL Server provides three type of triggers:
@@ -551,9 +557,13 @@ Data manipulation language (DML) triggers which are invoked automatically in res
 Creating a trigger in SQL Server – show you how to create a trigger in response to insert and delete events. Creating an INSTEAD OF trigger – learn about the INSTEAD OF trigger and its practical applications. Creating a DDL trigger – learn how to create a DDL trigger to monitor the changes made to the structures of database objects such as tables, views, and indexes. Disabling triggers – learn how to disable a trigger of a table temporarily so that it does not fire when associated events occur. Enabling triggers – show you how to enable a trigger. Viewing the definition of a trigger – provide you with various ways to view the definition of a trigger. Listing all triggers in SQL Server – show you how to list all triggers in a SQL Server by querying data from the sys.triggers view.
 
 **Applies to**: [!INCLUDE[ssKatmai](../../includes/sskatmai-md.md)] through [!INCLUDE[ssCurrent](../../includes/sscurrent-md.md)].  
------------------------------------------------------------------------      IF @Action = 'DELETE' BEGIN INSERT INTO audit (TableName, ActionTaken, ColumnName,       Old_Value, New_Value, CreatedBy)    VALUES ('employee', @Action, 'emp_no',      @old_emp_no, @new_emp_no, @user) INSERT INTO audit (TableName, ActionTaken, ColumnName,       Old_Value, New_Value, CreatedBy)    VALUES ('employee', @Action, 'emp_fname',      @old_emp_fname, @new_emp_fname, @user) INSERT INTO audit (TableName, ActionTaken, ColumnName,       Old_Value, New_Value, CreatedBy)    VALUES ('employee', @Action, 'emp_lname',      @old_emp_lname, @new_emp_lname, @user) INSERT INTO audit (TableName, ActionTaken, ColumnName,       Old_Value, New_Value, CreatedBy)    VALUES ('employee', @Action, 'dept_no',      @old_dept_no, @new_dept_no, @user) INSERT INTO audit (TableName, ActionTaken, ColumnName,       Old_Value, New_Value, CreatedBy)    VALUES ('employee', @Action, 'salary',      @old_salary, @new_salary, @user) END SET NOCOUNT OFF ----------------------------------------------------------------------- INSERT INTO employee VALUES (2200,'Murphy','Williams','d3',NULL) UPDATE employee SET emp_fname = 'Oliver', emp_lname = 'Whalen' WHERE emp_no = 2200 
-UPDATE employee SET salary = 50000 WHERE emp_no = 2200 DELETE employee WHERE emp_no = 2200 SELECT * FROM audit TRUNCATE TABLE audit 
-     
+********************************************************************************************      
+IF @Action = 'DELETE' BEGIN INSERT INTO audit (TableName, ActionTaken, ColumnName, Old_Value, New_Value, CreatedBy)
+VALUES ('employee', @Action, 'emp_no', @old_emp_no, @new_emp_no, @user) 
+VALUES ('employee', @Action, ___ , @old____, @new___, @user) 
+********************************************************************************************
+END SET NOCOUNT OFF ----------------------------------------------------------------------- 
+ 
 ```sql  
 CREATE TRIGGER ddl_trig_database   
 ON ALL SERVER   
@@ -571,7 +581,10 @@ GO
 The following logon trigger example denies an attempt to log in to [!INCLUDE[ssNoVersion](../../includes/ssnoversion-md.md)] as a member of the *login_test* login if there are already three user sessions running under that login.  
   
 **Applies to**: [!INCLUDE[ssKatmai](../../includes/sskatmai-md.md)] through [!INCLUDE[ssCurrent](../../includes/sscurrent-md.md)].  
-  
+********************************************************************************************
+INSERT INTO employee VALUES (2200,'Murphy','Williams','d3',NULL) UPDATE employee SET emp_fname = 'Oliver', emp_lname = 'Whalen' WHERE emp_no = 2200 
+UPDATE employee SET salary = 50000 WHERE emp_no = 2200 DELETE employee WHERE emp_no = 2200 SELECT * FROM audit TRUNCATE TABLE audit 
+********************************************************************************************      
 ```sql  
 USE master;  
 GO  
