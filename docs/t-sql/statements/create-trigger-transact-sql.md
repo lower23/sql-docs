@@ -468,10 +468,16 @@ ROLLBACK TRANSACTION;
 RETURN   
 END;  
 GO  
-  
 -- This statement attempts to insert a row into the PurchaseOrderHeader table  
 -- for a vendor that has a below average credit rating.  
 -- The AFTER INSERT trigger is fired and the INSERT transaction is rolled back.  
+
+CREATE TRIGGER trg_audit_employee ON employee 
+AFTER INSERT, UPDATE, DELETE 
+AS SET NOCOUNT 
+ON DECLARE @old_emp_no int = NULL DECLARE @old_emp_fname char(20) = NULL, @old_emp_lname char(20) = NULL DECLARE @old_dept_no char(4) = NULL, @old_salary money = NULL DECLARE @new_emp_no int = NULL DECLARE @new_emp_fname char(20) = NULL, @new_emp_lname char(20) = NULL DECLARE @new_dept_no char(4) = NULL, @new_salary money = NULL DECLARE @Action CHAR(6) DECLARE @user VARCHAR(255) = '' SELECT @user = CURRENT_USER SELECT @new_emp_no = emp_no FROM inserted 
+
+
   
 INSERT INTO Purchasing.PurchaseOrderHeader (RevisionNumber, Status, EmployeeID,  
 VendorID, ShipMethodID, OrderDate, ShipDate, SubTotal, TaxAmt, Freight)  
@@ -489,7 +495,11 @@ VALUES (
 GO  
   
 ```  
-  
+IF @new_emp_no IS NULL SET @Action = 'DELETE' ELSE  BEGIN  SELECT @old_emp_no = emp_no FROM deleted  IF @old_emp_no IS NULL SET @Action = 'INSERT'  ELSE SET @Action = 'UPDATE' END IF @Action IN ('DELETE', 'UPDATE')  SELECT @old_emp_no = emp_no,    @old_emp_fname = emp_fname,    @old_emp_lname = emp_lname,    @old_dept_no = dept_no,    @old_salary = salary  FROM deleted IF @Action IN ('INSERT', 'UPDATE')  SELECT @new_emp_no = emp_no,    @new_emp_fname = emp_fname,    @new_emp_lname = emp_lname,    @new_dept_no = dept_no,    @new_salary = salary 
+ FROM inserted ----------------------------------------------------------------------- 
+
+ 
+
 ### D. Using a database-scoped DDL trigger  
 The following example uses a DDL trigger to prevent any synonym in a database from being dropped.  
   
@@ -507,12 +517,29 @@ DROP TRIGGER safety
 ON DATABASE;  
 GO  
 ```  
-  
+ 
+IF UPDATE(emp_no) INSERT INTO audit (TableName, ActionTaken, ColumnName,       Old_Value, New_Value, CreatedBy)    VALUES ('employee', @Action, 'emp_no',      @old_emp_no, @new_emp_no, @user) IF UPDATE(emp_fname) INSERT INTO audit (TableName, ActionTaken, ColumnName,       Old_Value, New_Value, CreatedBy)    VALUES ('employee', @Action, 'emp_fname',      @old_emp_fname, @new_emp_fname, @user) IF UPDATE(emp_lname) INSERT INTO audit (TableName, ActionTaken, ColumnName,       Old_Value, New_Value, CreatedBy)    VALUES ('employee', @Action, 'emp_lname',      @old_emp_lname, @new_emp_lname, @user) IF UPDATE(dept_no) INSERT INTO audit (TableName, ActionTaken, ColumnName,       Old_Value, New_Value, CreatedBy)    VALUES ('employee', @Action, 'dept_no',      @old_dept_no, @new_dept_no, @user) IF UPDATE(salary) INSERT INTO audit (TableName, ActionTaken, ColumnName,       Old_Value, New_Value, CreatedBy)    VALUES ('employee', @Action, 'salary',      @old_salary, @new_salary, @user)   
 ### E. Using a server-scoped DDL trigger  
 The following example uses a DDL trigger to print a message if any CREATE DATABASE event occurs on the current server instance, and uses the `EVENTDATA` function to retrieve the text of the corresponding [!INCLUDE[tsql](../../includes/tsql-md.md)] statement. For more examples that use EVENTDATA in DDL triggers, see [Use the EVENTDATA Function](../../relational-databases/triggers/use-the-eventdata-function.md).  
-  
+SQL Server triggers are special stored procedures that are executed automatically in response to the database object, database, and server events. SQL Server provides three type of triggers:
+
+Data manipulation language (DML) triggers which are invoked automatically in response to INSERT, UPDATE, and DELETE events against tables.
+Data definition language (DDL) triggers which fire in response to CREATE, ALTER, and DROP statements. DDL triggers also fire in response to some system stored procedures that perform DDL-like operations.
+Logon triggers which fire in response to LOGON events
+In this section, you will learn how to effectively use triggers in SQL Server.
+
+Creating a trigger in SQL Server – show you how to create a trigger in response to insert and delete events.
+Creating an INSTEAD OF trigger – learn about the INSTEAD OF trigger and its practical applications.
+Creating a DDL trigger – learn how to create a DDL trigger to monitor the changes made to the structures of database objects such as tables, views, and indexes.
+Disabling triggers – learn how to disable a trigger of a table temporarily so that it does not fire when associated events occur.
+Enabling triggers – show you how to enable a trigger.
+Viewing the definition of a trigger – provide you with various ways to view the definition of a trigger.
+Listing all triggers in SQL Server – show you how to list all triggers in a SQL Server by querying data from the sys.triggers view.
+
 **Applies to**: [!INCLUDE[ssKatmai](../../includes/sskatmai-md.md)] through [!INCLUDE[ssCurrent](../../includes/sscurrent-md.md)].  
-  
+-----------------------------------------------------------------------      IF @Action = 'DELETE' BEGIN INSERT INTO audit (TableName, ActionTaken, ColumnName,       Old_Value, New_Value, CreatedBy)    VALUES ('employee', @Action, 'emp_no',      @old_emp_no, @new_emp_no, @user) INSERT INTO audit (TableName, ActionTaken, ColumnName,       Old_Value, New_Value, CreatedBy)    VALUES ('employee', @Action, 'emp_fname',      @old_emp_fname, @new_emp_fname, @user) INSERT INTO audit (TableName, ActionTaken, ColumnName,       Old_Value, New_Value, CreatedBy)    VALUES ('employee', @Action, 'emp_lname',      @old_emp_lname, @new_emp_lname, @user) INSERT INTO audit (TableName, ActionTaken, ColumnName,       Old_Value, New_Value, CreatedBy)    VALUES ('employee', @Action, 'dept_no',      @old_dept_no, @new_dept_no, @user) INSERT INTO audit (TableName, ActionTaken, ColumnName,       Old_Value, New_Value, CreatedBy)    VALUES ('employee', @Action, 'salary',      @old_salary, @new_salary, @user) END SET NOCOUNT OFF ----------------------------------------------------------------------- INSERT INTO employee VALUES (2200,'Murphy','Williams','d3',NULL) UPDATE employee SET emp_fname = 'Oliver', emp_lname = 'Whalen' WHERE emp_no = 2200 
+UPDATE employee SET salary = 50000 WHERE emp_no = 2200 DELETE employee WHERE emp_no = 2200 SELECT * FROM audit TRUNCATE TABLE audit 
+     
 ```sql  
 CREATE TRIGGER ddl_trig_database   
 ON ALL SERVER   
