@@ -1,3 +1,14 @@
+
+student(stuNum, StuName, NumCre, AdvisorNum, AdvisorName, CourseNum, CourseDesc, Grade)
+
+1NF:
+student(PK-stuNum, StuName, NumCre, AdvisorNum, AdvisorName, CourseNum, CourseDesc, Grade)
+
+2NF:
+student(PK-stuNum, StuName, NumCre, FK-AdvisorNum, CourseNum)
+Avisor(PK-AdvisorNum, AdvisorName, Grade)
+Course(PK-CourseNum, CourseDesc)
+CourseTaken( (PK-stuNum, CourseNum), Grade)
 ---
 title: "CREATE TRIGGER AND CREATE TABLE(Transact-SQL) | Microsoft Docs"
 ms.custom: ""
