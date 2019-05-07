@@ -34,6 +34,67 @@ ms.reviewer: mathoma
 # CREATE TRIGGER (Transact-SQL)
 [!INCLUDE[tsql-appliesto-ss2008-asdb-xxxx-xxx-md](../../includes/tsql-appliesto-ss2008-asdb-xxxx-xxx-md.md)]
 
+CREATE TABLE department(dept_no CHAR(4) NOT NULL PRIMARY KEY,
+                        dept_name CHAR(25) NOT NULL,
+                        location CHAR(30) NULL)
+
+CREATE TABLE employee  (emp_no INTEGER NOT NULL PRIMARY KEY, 
+                        emp_fname CHAR(20) NOT NULL,
+                        emp_lname CHAR(20) NOT NULL,
+                        dept_no CHAR(4) NULL,
+						salary money NULL,
+						CONSTRAINT foreign_emp FOREIGN KEY(dept_no) REFERENCES department(dept_no))
+
+CREATE TABLE project   (project_no CHAR(4) NOT NULL PRIMARY KEY,
+                        project_name CHAR(15) NOT NULL,
+                        budget FLOAT NULL)
+
+CREATE TABLE works_on	(emp_no INTEGER NOT NULL,
+                        project_no CHAR(4) NOT NULL,
+                        job CHAR (15) NULL,
+                        enter_date DATE NULL,
+						CONSTRAINT works_on_PK PRIMARY KEY (emp_no, project_no),
+						CONSTRAINT FK1_works_on FOREIGN KEY(emp_no) REFERENCES employee(emp_no),
+						CONSTRAINT FK2_works_on FOREIGN KEY(project_no) REFERENCES project(project_no))
+            
+*table* | *view*  
+The table or view on which the DML trigger runs. This table or view is sometimes referred to as the trigger table or trigger view. Specifying the fully qualified name of the table or view is optional. You can only reference a view by an INSTEAD OF trigger. You can't define DML triggers on local or global temporary tables.  
+  
+DATABASE  
+Applies the scope of a DDL trigger to the current database. If specified, the trigger fires whenever *event_type* or *event_group* occurs in the current database.  
+*table* | *view*  
+The table or view on which the DML trigger runs. This table or view is sometimes referred to as the trigger table or trigger view. Specifying the fully qualified name of the table or view is optional. You can only reference a view by an INSTEAD OF trigger. You can't define DML triggers on local or global temporary tables.  
+  
+DATABASE  
+Applies the scope of a DDL trigger to the current database. If specified, the trigger fires whenever *event_type* or *event_group* occurs in the current database.  
+*table* | *view*  
+The table or view on which the DML trigger runs. This table or view is sometimes referred to as the trigger table or trigger view. Specifying the fully qualified name of the table or view is optional. You can only reference a view by an INSTEAD OF trigger. You can't define DML triggers on local or global temporary tables.  
+  
+DATABASE  
+Applies the scope of a DDL trigger to the current database. If specified, the trigger fires whenever *event_type* or *event_group* occurs in the current database.  
+insert into department values ('d1', 'Research',   'Dallas')
+
+
+insert into employee values(25348, 'Matthew', 'Smith',    'd3', 35000)
+
+
+insert into project values ('p1', 'Apollo', 120000.00)
+
+
+insert into works_on values (10102, 'p1',  'Analyst',   '2006.10.1')
+
+
+SELECT  emp_no, emp_fname, emp_lname, dept_no, salary
+   INTO employee_enh
+   FROM employee
+
+ALTER TABLE employee_enh
+          ADD domicile CHAR(25) NULL
+			CONSTRAINT PK_employee_enh PRIMARY KEY (emp_no)
+
+UPDATE employee_enh
+	SET domicile = 'San Antonio'
+WHERE emp_no = 25348
 
 Creates a DML, DDL, or logon trigger. A trigger is a special type of stored procedure that automatically runs when an event occurs in the database server. DML triggers run when a user tries to modify data through a data manipulation language (DML) event. DML events are INSERT, UPDATE, or DELETE statements on a table or view. These triggers fire when any valid event fires, whether table rows are affected or not. For more information, see [DML Triggers](../../relational-databases/triggers/dml-triggers.md).  
   
