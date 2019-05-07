@@ -125,17 +125,18 @@ This topic describes how to create a [!INCLUDE[tsql](../../includes/tsql-md.md)]
     GO  
   
     ```  
-(25 points) Create a batch that inserts 3000 rows in the employee table. The values of the emp_no
-column should be unique and between 1 and 3000. (Do not modify the table structure.) All values of
-the columns emp_fname, emp_lname, and dept_no should be set to ‘Jane’, ‘Smith’, and ‘d1’
-respectively.
-Turn NoCount ON.
-Use error checking. If there is an error display this message - Duplicate Employee Number – 9999.
+(25 points) Create a batch that inserts 3000 rows 
+To run the procedure, copy and paste the following example into a new query window and click **Execute**. Notice that different methods of specifying the parameter values are shown.
+
+To run the procedure, copy and paste the following example into a new query window and click **Execute**. Notice that different methods of specifying the parameter values are shown.
+************************************************************************************
+
 SET NOCOUNT ON
 declare @i integer
 declare @first_name char(20)
 declare @last_name char(20)
 declare @department char(4)
+************************
 set @i = 1
 set @first_name = 'Jane'
 set @last_name = 'Smith'
@@ -155,6 +156,10 @@ END CATCH
 set @i = @i+1
 end
 SET NOCOUNT OFF
+To run the procedure, copy and paste the following example into a new query window and click **Execute**. Notice that different methods of specifying the parameter values are shown.
+
+To run the procedure, copy and paste the following example into a new query window and click **Execute**. Notice that different methods of specifying the parameter values are shown.
+************************************************************************************
 Select * from employee
 DELETE employee
 WHERE emp_no between 1 and 3000 and emp_no <> 2581
