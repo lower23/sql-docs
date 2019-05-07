@@ -33,18 +33,39 @@ ms.reviewer: mathoma
 ---
 # CREATE TRIGGER (Transact-SQL)
 [!INCLUDE[tsql-appliesto-ss2008-asdb-xxxx-xxx-md](../../includes/tsql-appliesto-ss2008-asdb-xxxx-xxx-md.md)]
-
+*table* | *view*  
+The table or view on which the DML trigger runs. This table or view is sometimes referred to as the trigger table or trigger view. Specifying the fully qualified name of the table or view is optional. You can only reference a view by an INSTEAD OF trigger. You can't define DML triggers on local or global temporary tables.  
+  
+DATABASE  
+Applies the scope of a DDL trigger to the current database. If specified, the trigger fires whenever *event_type* or *event_group* occurs in the current database.  
+*table* | *view*  
+The table or view on which the DML trigger runs. This table or view is sometimes referred to as the trigger table or trigger view. Specifying the fully qualified name of the table or view is optional. You can only reference a view by an INSTEAD OF trigger. You can't define DML triggers on local or global temporary tables.  
+  
 CREATE TABLE department(dept_no CHAR(4) NOT NULL PRIMARY KEY,
                         dept_name CHAR(25) NOT NULL,
                         location CHAR(30) NULL)
-
+*table* | *view*  
+The table or view on which the DML trigger runs. This table or view is sometimes referred to as the trigger table or trigger view. Specifying the fully qualified name of the table or view is optional. You can only reference a view by an INSTEAD OF trigger. You can't define DML triggers on local or global temporary tables.  
+  
+DATABASE  
+Applies the scope of a DDL trigger to the current database. If specified, the trigger fires whenever *event_type* or *event_group* occurs in the current database.  
+*table* | *view*  
+The table or view on which the DML trigger runs. This table or view is sometimes referred to as the trigger table or trigger view. Specifying the fully qualified name of the table or view is optional. You can only reference a view by an INSTEAD OF trigger. You can't define DML triggers on local or global temporary tables.  
+  
 CREATE TABLE employee  (emp_no INTEGER NOT NULL PRIMARY KEY, 
                         emp_fname CHAR(20) NOT NULL,
                         emp_lname CHAR(20) NOT NULL,
                         dept_no CHAR(4) NULL,
 						salary money NULL,
 						CONSTRAINT foreign_emp FOREIGN KEY(dept_no) REFERENCES department(dept_no))
-
+*table* | *view*  
+The table or view on which the DML trigger runs. This table or view is sometimes referred to as the trigger table or trigger view. Specifying the fully qualified name of the table or view is optional. You can only reference a view by an INSTEAD OF trigger. You can't define DML triggers on local or global temporary tables.  
+  
+DATABASE  
+Applies the scope of a DDL trigger to the current database. If specified, the trigger fires whenever *event_type* or *event_group* occurs in the current database.  
+*table* | *view*  
+The table or view on which the DML trigger runs. This table or view is sometimes referred to as the trigger table or trigger view. Specifying the fully qualified name of the table or view is optional. You can only reference a view by an INSTEAD OF trigger. You can't define DML triggers on local or global temporary tables.  
+  
 CREATE TABLE project   (project_no CHAR(4) NOT NULL PRIMARY KEY,
                         project_name CHAR(15) NOT NULL,
                         budget FLOAT NULL)
@@ -77,12 +98,33 @@ insert into department values ('d1', 'Research',   'Dallas')
 
 insert into employee values(25348, 'Matthew', 'Smith',    'd3', 35000)
 
-
+*table* | *view*  
+The table or view on which the DML trigger runs. This table or view is sometimes referred to as the trigger table or trigger view. Specifying the fully qualified name of the table or view is optional. You can only reference a view by an INSTEAD OF trigger. You can't define DML triggers on local or global temporary tables.  
+  
+DATABASE  
+Applies the scope of a DDL trigger to the current database. If specified, the trigger fires whenever *event_type* or *event_group* occurs in the current database.  
+*table* | *view*  
+The table or view on which the DML trigger runs. This table or view is sometimes referred to as the trigger table or trigger view. Specifying the fully qualified name of the table or view is optional. You can only reference a view by an INSTEAD OF trigger. You can't define DML triggers on local or global temporary tables.  
+  
 insert into project values ('p1', 'Apollo', 120000.00)
-
+*table* | *view*  
+The table or view on which the DML trigger runs. This table or view is sometimes referred to as the trigger table or trigger view. Specifying the fully qualified name of the table or view is optional. You can only reference a view by an INSTEAD OF trigger. You can't define DML triggers on local or global temporary tables.  
+  
+DATABASE  
+Applies the scope of a DDL trigger to the current database. If specified, the trigger fires whenever *event_type* or *event_group* occurs in the current database.  
+*table* | *view*  
+The table or view on which the DML trigger runs. This table or view is sometimes referred to as the trigger table or trigger view. Specifying the fully qualified name of the table or view is optional. You can only reference a view by an INSTEAD OF trigger. You can't define DML triggers on local or global temporary tables.  
+  
 
 insert into works_on values (10102, 'p1',  'Analyst',   '2006.10.1')
-
+*table* | *view*  
+The table or view on which the DML trigger runs. This table or view is sometimes referred to as the trigger table or trigger view. Specifying the fully qualified name of the table or view is optional. You can only reference a view by an INSTEAD OF trigger. You can't define DML triggers on local or global temporary tables.  
+  
+DATABASE  
+Applies the scope of a DDL trigger to the current database. If specified, the trigger fires whenever *event_type* or *event_group* occurs in the current database.  
+*table* | *view*  
+The table or view on which the DML trigger runs. This table or view is sometimes referred to as the trigger table or trigger view. Specifying the fully qualified name of the table or view is optional. You can only reference a view by an INSTEAD OF trigger. You can't define DML triggers on local or global temporary tables.  
+  
 
 SELECT  emp_no, emp_fname, emp_lname, dept_no, salary
    INTO employee_enh
@@ -91,7 +133,14 @@ SELECT  emp_no, emp_fname, emp_lname, dept_no, salary
 ALTER TABLE employee_enh
           ADD domicile CHAR(25) NULL
 			CONSTRAINT PK_employee_enh PRIMARY KEY (emp_no)
-
+*table* | *view*  
+The table or view on which the DML trigger runs. This table or view is sometimes referred to as the trigger table or trigger view. Specifying the fully qualified name of the table or view is optional. You can only reference a view by an INSTEAD OF trigger. You can't define DML triggers on local or global temporary tables.  
+  
+DATABASE  
+Applies the scope of a DDL trigger to the current database. If specified, the trigger fires whenever *event_type* or *event_group* occurs in the current database.  
+*table* | *view*  
+The table or view on which the DML trigger runs. This table or view is sometimes referred to as the trigger table or trigger view. Specifying the fully qualified name of the table or view is optional. You can only reference a view by an INSTEAD OF trigger. You can't define DML triggers on local or global temporary tables.  
+  
 UPDATE employee_enh
 	SET domicile = 'San Antonio'
 WHERE emp_no = 25348
@@ -133,7 +182,14 @@ AS { sql_statement  [ ; ] [ ,...n ] | EXTERNAL NAME <method specifier [ ; ] > }
     assembly_name.class_name.method_name  
   
 ```  
+*table* | *view*  
+The table or view on which the DML trigger runs. This table or view is sometimes referred to as the trigger table or trigger view. Specifying the fully qualified name of the table or view is optional. You can only reference a view by an INSTEAD OF trigger. You can't define DML triggers on local or global temporary tables.  
   
+DATABASE  
+Applies the scope of a DDL trigger to the current database. If specified, the trigger fires whenever *event_type* or *event_group* occurs in the current database.  
+*table* | *view*  
+The table or view on which the DML trigger runs. This table or view is sometimes referred to as the trigger table or trigger view. Specifying the fully qualified name of the table or view is optional. You can only reference a view by an INSTEAD OF trigger. You can't define DML triggers on local or global temporary tables.  
+    
 ``` 
 -- SQL Server Syntax  
 -- Trigger on an INSERT, UPDATE, or DELETE statement to a 
