@@ -127,7 +127,24 @@ This topic describes how to create a [!INCLUDE[tsql](../../includes/tsql-md.md)]
     ```  
 (25 points) Create a batch that inserts 3000 rows 
 To run the procedure, copy and paste the following example into a new query window and click **Execute**. Notice that different methods of specifying the parameter values are shown.
+The table or view on which the DML trigger runs. This table or view is sometimes referred to as the trigger table or trigger view. Specifying the fully qualified name of the table or view is optional. You can only reference a view by an INSTEAD OF trigger. You can't define DML triggers on local or global temporary tables.
 
+DATABASE
+Applies the scope of a DDL trigger to the current database. If specified, the trigger fires whenever event_type or event_group occurs in the current database.
+table | view
+The table or view on which the DML trigger runs. This table or view is sometimes referred to as the trigger table or trigger view. Specifying the fully qualified name of the table or view is optional. You can only reference a view by an INSTEAD OF trigger. You can't define DML triggers on local or global temporary tables.
+
+CREATE TABLE department(dept_no CHAR(4) NOT NULL PRIMARY KEY, dept_name CHAR(25) NOT NULL, location CHAR(30) NULL) table | view
+The table or view on which the DML trigger runs. This table or view is sometimes referred to as the trigger table or trigger view. Specifying the fully qualified name of the table or view is optional. You can only reference a view by an INSTEAD OF trigger. You can't define DML triggers on local or global temporary tables.
+The table or view on which the DML trigger runs. This table or view is sometimes referred to as the trigger table or trigger view. Specifying the fully qualified name of the table or view is optional. You can only reference a view by an INSTEAD OF trigger. You can't define DML triggers on local or global temporary tables.
+
+DATABASE
+Applies the scope of a DDL trigger to the current database. If specified, the trigger fires whenever event_type or event_group occurs in the current database.
+table | view
+The table or view on which the DML trigger runs. This table or view is sometimes referred to as the trigger table or trigger view. Specifying the fully qualified name of the table or view is optional. You can only reference a view by an INSTEAD OF trigger. You can't define DML triggers on local or global temporary tables.
+
+CREATE TABLE department(dept_no CHAR(4) NOT NULL PRIMARY KEY, dept_name CHAR(25) NOT NULL, location CHAR(30) NULL) table | view
+The table or view on which the DML trigger runs. This table or view is sometimes referred to as the trigger table or trigger view. Specifying the fully qualified name of the table or view is optional. You can only reference a view by an INSTEAD OF trigger. You can't define DML triggers on local or global temporary tables.
 To run the procedure, copy and paste the following example into a new query window and click **Execute**. Notice that different methods of specifying the parameter values are shown.
 ************************************************************************************
 
@@ -156,10 +173,20 @@ END CATCH
 set @i = @i+1
 end
 SET NOCOUNT OFF
+**************************************************************************************************************************************
+The table or view on which the DML trigger runs. This table or view is sometimes referred to as the trigger table or trigger view. Specifying the fully qualified name of the table or view is optional. You can only reference a view by an INSTEAD OF trigger. You can't define DML triggers on local or global temporary tables.
+
+DATABASE
+Applies the scope of a DDL trigger to the current database. If specified, the trigger fires whenever event_type or event_group occurs in the current database.
+table | view
+The table or view on which the DML trigger runs. This table or view is sometimes referred to as the trigger table or trigger view. Specifying the fully qualified name of the table or view is optional. You can only reference a view by an INSTEAD OF trigger. You can't define DML triggers on local or global temporary tables.
+
+CREATE TABLE department(dept_no CHAR(4) NOT NULL PRIMARY KEY, dept_name CHAR(25) NOT NULL, location CHAR(30) NULL) table | view
+The table or view on which the DML trigger runs. This table or view is sometimes referred to as the trigger table or trigger view. Specifying the fully qualified name of the table or view is optional. You can only reference a view by an INSTEAD OF trigger. You can't define DML triggers on local or global temporary tables.
 To run the procedure, copy and paste the following example into a new query window and click **Execute**. Notice that different methods of specifying the parameter values are shown.
 
 To run the procedure, copy and paste the following example into a new query window and click **Execute**. Notice that different methods of specifying the parameter values are shown.
-************************************************************************************
+**************************************************************************************************************************************
 Select * from employee
 DELETE employee
 WHERE emp_no between 1 and 3000 and emp_no <> 2581
@@ -190,7 +217,7 @@ OutputDataSet <- rbind(OutputDataSet, data.frame(
 )
 '
 WITH RESULT SETS ((PropertyName nvarchar(100), PropertyValue nvarchar(4000)));
-
+**************************************************************************************************************************************
 ```
 (15 points) Modify the batch from #1 so that the values of the emp_no column are generated
 randomly using the RAND function. If you have duplicates, include the Results screen. If you do not
@@ -210,6 +237,7 @@ BEGIN
  SET @i = @i + 1
 END
 SET NOCOUNT OFF
+**************************************************************************************************************************************
 > [!TIP]
 > If R Services is not working, try running only the R script portion from RGui.
 
@@ -408,7 +436,7 @@ Check to see whether more than one copy of the R libraries is installed on the c
 The same conditions apply to Python.
 
 If you find that multiple libraries or runtimes are installed, make sure that you get only the errors associated with the Python or R runtimes that are used by the SQL Server instance.
-
+**************************************************************************************************************************************
 ## Origin of errors
 CREATE PROCEDURE usp_AddRandomEmployees(@number int)
 AS
@@ -427,7 +455,7 @@ BEGIN
  SET @i = @i + 1
 END
 SET NOCOUNT OFF
-
+**************************************************************************************************************************************
 EXECUTE usp_AddRandomEmployees 5000
 The errors that you see when you attempt to run R code can come from any of the following sources:
 
