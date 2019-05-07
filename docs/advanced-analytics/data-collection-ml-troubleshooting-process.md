@@ -1,43 +1,168 @@
 ---
-title: Troubleshoot data collection for machine learning - SQL Server Machine Learning Services
+title: "Create a Stored Procedure | Microsoft Docs"
+ms.custom: ""
+ms.date: "03/16/2017"
 ms.prod: sql
-ms.technology: machine-learning
-
-ms.date: 02/28/2019
-ms.topic: conceptual
-author: dphansen
-ms.author: davidph
-manager: cgronlun
+ms.reviewer: ""
+ms.technology: stored-procedures
+ms.topic: quickstart
+helpviewer_keywords: 
+  - "new stored procedures"
+  - "stored procedures [SQL Server], creating"
+  - "creating stored procedures"
+ms.assetid: 76e8a6ba-1381-4620-b356-4311e1331ca7
+author: "stevestein"
+ms.author: "sstein"
+manager: craigg
+monikerRange: ">=aps-pdw-2016||=azuresqldb-current||=azure-sqldw-latest||>=sql-server-2016||=sqlallproducts-allversions||>=sql-server-linux-2017||=azuresqldb-mi-current"
 ---
-# Troubleshoot data collection for machine learning
+# Create a Stored Procedure
+[!INCLUDE[appliesto-ss-asdb-asdw-pdw-md](../../includes/appliesto-ss-asdb-asdw-pdw-md.md)]
 
-[!INCLUDE[appliesto-ss-xxxx-xxxx-xxx-md-winonly](../includes/appliesto-ss-xxxx-xxxx-xxx-md-winonly.md)]
 
-This article describes data collection methods you should use when attempting to resolve problems on your own or with the help of Microsoft customer support.
-
-**Applies to:** SQL Server 2016 R Services, SQL Server 2017 Machine Learning Services (R and Python)
-
-## SQL Server version and edition
-
-SQL Server 2016 R Services is the first release of SQL Server to include integrated R support. SQL Server 2016 Service Pack 1 (SP1) includes several major improvements, including the ability to run external scripts. If you are a SQL Server 2016 customer, you should consider installing SP1 or later.
-
-SQL Server 2017 added Python language integration. You cannot get Python feature integration in earlier releases.
-
-For assistance getting edition and versions, see this article, which lists the build numbers for each of the
-[SQL Server versions](https://social.technet.microsoft.com/wiki/contents/articles/783.sql-server-versions.aspx#Service_Pack_editions).
-
-Depending on the edition of SQL Server you're using, some machine learning functionality might be unavailable, or limited. The following articles list of machine learning features in Enterprise, Developer, Standard, and Express editions.
-
-* [Editions and supported features of SQL Server](https://docs.microsoft.com/sql/sql-server/editions-and-components-of-sql-server-2016)
-* [R and Python features by editions of SQL Server](r/differences-in-r-features-between-editions-of-sql-server.md)
-
-## R language and tool versions
-
-In general, the version of Microsoft R that is installed when you select the R Services feature or the Machine Learning Services feature is determined by the SQL Server build number. If you upgrade or patch SQL Server, you must also upgrade or patch its R components.
-
-For a list of releases and links to R component downloads, see [Install machine learning components without internet access](https://docs.microsoft.com/sql/advanced-analytics/r/installing-ml-components-without-internet-access). On computers with internet access, the required version of R is identified and installed automatically.
-
-It's possible to upgrade the R Server components separately from the SQL Server database engine, in a process known as binding. Therefore, the version of R that you use when you run R code in SQL Server might differ depending on both the installed version of SQL Server and whether you have migrated the server to the latest R version.
+This topic describes how to create a [!INCLUDE[tsql](../../includes/tsql-md.md)] stored procedure by using [!INCLUDE[ssManStudioFull](../../includes/ssmanstudiofull-md.md)] and by using the [!INCLUDE[tsql](../../includes/tsql-md.md)] CREATE PROCEDURE statement.  
+  
+##  <a name="Top"></a>   
+-   **Before you begin:**  [Permissions](#Permissions)  
+  
+-   **To create a procedure, using:**  [SQL Server Management Studio](#SSMSProcedure), [Transact-SQL](#TsqlProcedure)  
+  
+##  <a name="Permissions"></a> Permissions  
+ Requires CREATE PROCEDURE permission in the database and ALTER permission on the schema in which the procedure is being created.  
+  
+##  <a name="Procedures"></a> How to Create a Stored Procedure  
+ You can use one of the following:  
+  
+-   [SQL Server Management Studio](#SSMSProcedure)  
+  
+-   [Transact-SQL](#TsqlProcedure)  
+  
+###  <a name="SSMSProcedure"></a> Using SQL Server Management Studio  
+ **To create a procedure in Object Explorer**  
+  
+1.  In **Object Explorer**, connect to an instance of [!INCLUDE[ssDE](../../includes/ssde-md.md)] and then expand that instance.  
+  
+2.  Expand **Databases**, expand the [!INCLUDE[ssSampleDBobject](../../includes/sssampledbobject-md.md)] database, and then expand **Programmability**.  
+  
+3.  Right-click **Stored Procedures**, and then click **New Stored Procedure**.  
+  
+4.  On the **Query** menu, click **Specify Values for Template Parameters**.  
+  
+5.  In the **Specify Values for Template Parameters** dialog box, enter the following values for the parameters shown.  
+  
+    |Parameter|Value|  
+    |---------------|-----------|  
+    |Author|*Your name*|  
+    |Create Date|*Today's date*|  
+    |Description|Returns employee data.|  
+    |Procedure_name|HumanResources.uspGetEmployeesTest|  
+    |@Param1|@LastName|  
+    |@Datatype_For_Param1|**nvarchar**(50)|  
+    |Default_Value_For_Param1|NULL|  
+    |@Param2|@FirstName|  
+    |@Datatype_For_Param2|**nvarchar**(50)|  
+    |Default_Value_For_Param2|NULL|  
+  
+6.  Click **OK**.  
+  
+7.  In the **Query Editor**, replace the SELECT statement with the following statement:  
+  
+    ```sql  
+    SELECT FirstName, LastName, Department  
+    FROM HumanResources.vEmployeeDepartmentHistory  
+    WHERE FirstName = @FirstName AND LastName = @LastName  
+        AND EndDate IS NULL;  
+    ```  
+  
+8.  To test the syntax, on the **Query** menu, click **Parse**. If an error message is returned, compare the statements with the information above and correct as needed.  
+  
+9. To create the procedure, from  the **Query** menu, click **Execute**. The procedure is created as an object in the database.  
+  
+10. To see the procedure listed in Object Explorer, right-click **Stored Procedures** and select **Refresh**.  
+  
+11. To run the procedure, in Object Explorer, right-click the stored procedure name **HumanResources.uspGetEmployeesTest** and select **Execute Stored Procedure**.  
+  
+12. In the **Execute Procedure** window, enter Margheim as the value for the parameter @LastName and enter the value Diane as the value for the parameter @FirstName.  
+  
+> [!WARNING]  
+>  Validate all user input. Do not concatenate user input before you validate it. Never execute a command constructed from unvalidated user input.  
+  
+###  <a name="TsqlProcedure"></a> Using Transact-SQL  
+ **To create a procedure in Query Editor**  
+  
+1.  In **Object Explorer**, connect to an instance of [!INCLUDE[ssDE](../../includes/ssde-md.md)].  
+  
+2.  From the **File** menu, click **New Query**.  
+  
+3.  Copy and paste the following example into the query window and click **Execute**. This example creates the same stored procedure as above using a different procedure name.  
+  
+    ```  
+    USE AdventureWorks2012;  
+    GO  
+    CREATE PROCEDURE HumanResources.uspGetEmployeesTest2   
+        @LastName nvarchar(50),   
+        @FirstName nvarchar(50)   
+    AS   
+  
+        SET NOCOUNT ON;  
+        SELECT FirstName, LastName, Department  
+        FROM HumanResources.vEmployeeDepartmentHistory  
+        WHERE FirstName = @FirstName AND LastName = @LastName  
+        AND EndDate IS NULL;  
+    GO  
+  
+    ```  
+  
+4.  To run the procedure, copy and paste the following example into a new query window and click **Execute**. Notice that different methods of specifying the parameter values are shown.  
+  
+    ```  
+    EXECUTE HumanResources.uspGetEmployeesTest2 N'Ackerman', N'Pilar';  
+    -- Or  
+    EXEC HumanResources.uspGetEmployeesTest2 @LastName = N'Ackerman', @FirstName = N'Pilar';  
+    GO  
+    -- Or  
+    EXECUTE HumanResources.uspGetEmployeesTest2 @FirstName = N'Pilar', @LastName = N'Ackerman';  
+    GO  
+  
+    ```  
+(25 points) Create a batch that inserts 3000 rows in the employee table. The values of the emp_no
+column should be unique and between 1 and 3000. (Do not modify the table structure.) All values of
+the columns emp_fname, emp_lname, and dept_no should be set to ‘Jane’, ‘Smith’, and ‘d1’
+respectively.
+Turn NoCount ON.
+Use error checking. If there is an error display this message - Duplicate Employee Number – 9999.
+SET NOCOUNT ON
+declare @i integer
+declare @first_name char(20)
+declare @last_name char(20)
+declare @department char(4)
+set @i = 1
+set @first_name = 'Jane'
+set @last_name = 'Smith'
+set @department = 'd1'
+while @i < 3001
+begin
+BEGIN TRANSACTION
+BEGIN TRY
+insert into employee
+ values (@i, @first_name, @last_name, @department, NULL)
+COMMIT
+END TRY
+BEGIN CATCH
+PRINT 'Duplicate Employee Number - ' + CAST(@i AS VARCHAR(4))
+ROLLBACK
+END CATCH
+set @i = @i+1
+end
+SET NOCOUNT OFF
+Select * from employee
+DELETE employee
+WHERE emp_no between 1 and 3000 and emp_no <> 2581
+##  <a name="PowerShellProcedure"></a>   
+## See Also  
+ [CREATE PROCEDURE &#40;Transact-SQL&#41;](../../t-sql/statements/create-procedure-transact-sql.md)  
+ 
+ *******************************************************************************************************************************************************
 
 ### Determine the R version
 
@@ -62,11 +187,128 @@ OutputDataSet <- rbind(OutputDataSet, data.frame(
 WITH RESULT SETS ((PropertyName nvarchar(100), PropertyValue nvarchar(4000)));
 
 ```
-
+(15 points) Modify the batch from #1 so that the values of the emp_no column are generated
+randomly using the RAND function. If you have duplicates, include the Results screen. If you do not
+then you do not need to. Then repeat step 2 for the results screenshot.
+DECLARE @i INT
+DECLARE @emp_no INT
+SET @i = 0
+SET @emp_no = (CONVERT(INT, (RAND() * 10000)))
+SET NOCOUNT ON
+WHILE @i < 3000
+BEGIN
+ WHILE (SELECT COUNT(*) FROM employee WHERE emp_no = @emp_no) > 0
+ BEGIN
+ SET @emp_no = (CONVERT(INT, (RAND() * 100000)))
+ END
+ INSERT INTO employee VALUES(@emp_no, 'Jane', 'Smith', 'd1', NULL)
+ SET @i = @i + 1
+END
+SET NOCOUNT OFF
 > [!TIP]
 > If R Services is not working, try running only the R script portion from RGui.
 
 As a last resort, you can open files on the server to determine the installed version. To do so, locate the rlauncher.config file to get the location of the R runtime and the current working directory. We recommend that you make and open a copy of the file so that you don't accidentally change any properties.
+There are several ways to get the Python version. The easiest way is to run this statement from Management Studio or any other SQL query tool:
+
+```sql
+-- Get Python runtime properties:
+exec sp_execute_external_script
+       @language = N'Python'
+       , @script = N'
+import sys
+import pkg_resources
+OutputDataSet = pandas.DataFrame(
+                    {"property_name": ["Python.home", "Python.version", "Revo.version", "libpaths"],
+                    "property_value": [sys.executable[:-10], sys.version, pkg_resources.get_distribution("revoscalepy").version, str(sys.path)]}
+)
+'
+with WITH RESULT SETS (SQL keywords) ((PropertyName nvarchar(100), PropertyValue nvarchar(4000)));
+```
+There are several ways to get the Python version. The easiest way is to run this statement from Management Studio or any other SQL query tool:
+
+```sql
+-- Get Python runtime properties:
+exec sp_execute_external_script
+       @language = N'Python'
+       , @script = N'
+import sys
+import pkg_resources
+OutputDataSet = pandas.DataFrame(
+                    {"property_name": ["Python.home", "Python.version", "Revo.version", "libpaths"],
+                    "property_value": [sys.executable[:-10], sys.version, pkg_resources.get_distribution("revoscalepy").version, str(sys.path)]}
+)
+'
+with WITH RESULT SETS (SQL keywords) ((PropertyName nvarchar(100), PropertyValue nvarchar(4000)));
+```
+There are several ways to get the Python version. The easiest way is to run this statement from Management Studio or any other SQL query tool:
+
+```sql
+-- Get Python runtime properties:
+exec sp_execute_external_script
+       @language = N'Python'
+       , @script = N'
+import sys
+import pkg_resources
+OutputDataSet = pandas.DataFrame(
+                    {"property_name": ["Python.home", "Python.version", "Revo.version", "libpaths"],
+                    "property_value": [sys.executable[:-10], sys.version, pkg_resources.get_distribution("revoscalepy").version, str(sys.path)]}
+)
+'
+with WITH RESULT SETS (SQL keywords) ((PropertyName nvarchar(100), PropertyValue nvarchar(4000)));
+```
+
+CREATE PROCEDURE usp_AddRandomEmployees(@number int)
+AS
+DECLARE @i INT
+DECLARE @emp_no INT
+SET @i = 0
+SET @emp_no = (CONVERT(INT, (RAND() * 10000)))
+SET NOCOUNT ON
+WHILE @i < @number
+BEGIN
+ WHILE (SELECT COUNT(*) FROM employee WHERE emp_no = @emp_no) > 0
+ BEGIN
+ SET @emp_no = (CONVERT(INT, (RAND() * 100000)))
+ END
+ INSERT INTO employee VALUES(@emp_no, 'Jane', 'Smith', 'd1', NULL)
+ SET @i = @i + 1
+END
+SET NOCOUNT OFF
+-----------------------------------------------------
+EXECUTE usp_AddRandomEmployees 5000
+There are several ways to get the Python version. The easiest way is to run this statement from Management Studio or any other SQL query tool:
+
+```sql
+-- Get Python runtime properties:
+exec sp_execute_external_script
+       @language = N'Python'
+       , @script = N'
+import sys
+import pkg_resources
+OutputDataSet = pandas.DataFrame(
+                    {"property_name": ["Python.home", "Python.version", "Revo.version", "libpaths"],
+                    "property_value": [sys.executable[:-10], sys.version, pkg_resources.get_distribution("revoscalepy").version, str(sys.path)]}
+)
+'
+with WITH RESULT SETS (SQL keywords) ((PropertyName nvarchar(100), PropertyValue nvarchar(4000)));
+```
+There are several ways to get the Python version. The easiest way is to run this statement from Management Studio or any other SQL query tool:
+
+```sql
+-- Get Python runtime properties:
+exec sp_execute_external_script
+       @language = N'Python'
+       , @script = N'
+import sys
+import pkg_resources
+OutputDataSet = pandas.DataFrame(
+                    {"property_name": ["Python.home", "Python.version", "Revo.version", "libpaths"],
+                    "property_value": [sys.executable[:-10], sys.version, pkg_resources.get_distribution("revoscalepy").version, str(sys.path)]}
+)
+'
+with WITH RESULT SETS (SQL keywords) ((PropertyName nvarchar(100), PropertyValue nvarchar(4000)));
+```
 
 * SQL Server 2016
   
@@ -81,9 +323,52 @@ To get the R version and RevoScaleR versions, open an R command prompt, or open 
 * SQL Server 2016
   
   `C:\Program Files\Microsoft SQL Server\MSSQL13.<instancename>\R_SERVICES\bin\x64\RGui.exe`
+ There are several ways to get the Python version. The easiest way is to run this statement from Management Studio or any other SQL query tool:
 
+```sql
+-- Get Python runtime properties:
+exec sp_execute_external_script
+       @language = N'Python'
+       , @script = N'
+import sys
+import pkg_resources
+OutputDataSet = pandas.DataFrame(
+                    {"property_name": ["Python.home", "Python.version", "Revo.version", "libpaths"],
+                    "property_value": [sys.executable[:-10], sys.version, pkg_resources.get_distribution("revoscalepy").version, str(sys.path)]}
+)
+'
+with WITH RESULT SETS (SQL keywords) ((PropertyName nvarchar(100), PropertyValue nvarchar(4000)));
+```
+There are several ways to get the Python version. The easiest way is to run this statement from Management Studio or any other SQL query tool:
+
+```sql
+-- Get Python runtime properties:
+exec sp_execute_external_script
+       @language = N'Python'
+       , @script = N'
+import sys
+import pkg_resources
+OutputDataSet = pandas.DataFrame(
+                    {"property_name": ["Python.home", "Python.version", "Revo.version", "libpaths"],
+                    "property_value": [sys.executable[:-10], sys.version, pkg_resources.get_distribution("revoscalepy").version, str(sys.path)]}
+)
+'
+with WITH RESULT SETS (SQL keywords) ((PropertyName nvarchar(100), PropertyValue nvarchar(4000)));
+```
+
+CREATE FUNCTION uf_CalcRaise
+(@emp int,
+@raise as decimal (3,2)) RETURNS money
+BEGIN
+DECLARE @NewSalary money
+SELECT @NewSalary = salary + salary * @raise
+FROM employee
+WHERE emp_no = @emp
+RETURN @NewSalary
+END
 * SQL Server 2017
-  
+SELECT *, dbo.uf_CalcRaise(emp_no,.02) AS NewSalary
+FROM employee  
   `C:\Program Files\Microsoft SQL Server\MSSQL14.<instance_name>\R_SERVICES\bin\x64\RGui.exe`
 
 The R console displays the version information on startup. For example, the following version represents the default configuration for SQL Server 2017:
