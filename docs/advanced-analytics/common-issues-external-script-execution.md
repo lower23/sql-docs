@@ -1,5 +1,5 @@
 ---
-title: "CREATE TRIGGER (Transact-SQL) | Microsoft Docs"
+title: "CREATE TRIGGER AND CREATE TABLE(Transact-SQL) | Microsoft Docs"
 ms.custom: ""
 ms.date: "08/10/2017"
 ms.prod: sql
