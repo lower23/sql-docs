@@ -471,7 +471,8 @@ GO
 -- This statement attempts to insert a row into the PurchaseOrderHeader table  
 -- for a vendor that has a below average credit rating.  
 -- The AFTER INSERT trigger is fired and the INSERT transaction is rolled back.  
-
+The following example creates a DML trigger in the AdventureWorks2012 database. This trigger checks to make sure the credit rating for the vendor is good (not 5) when there's an attempt to insert a new purchase order into the `PurchaseOrderHeader` table. To get the credit rating of the vendor, the `Vendor` table must be referenced. If the credit rating is too low, a message appears and the insertion doesn't happen.  The following example creates a DML trigger in the AdventureWorks2012 database. This trigger checks to make sure the credit rating for the vendor is good (not 5) when there's an attempt to insert a new purchase order into the `PurchaseOrderHeader` table. To get the credit rating of the vendor, the `Vendor` table must be referenced. If the credit rating is too low, a message appears and the insertion doesn't happen.  The following example creates a DML trigger in the AdventureWorks2012 database. This trigger checks to make sure the credit rating for the vendor is good (not 5) when there's an attempt to insert a new purchase order into the `PurchaseOrderHeader` table. To get the credit rating of the vendor, the `Vendor` table must be referenced. If the credit rating is too low, a message appears and the insertion doesn't happen.  The following example creates a DML trigger in the AdventureWorks2012 database. This trigger checks to make sure the credit rating for the vendor is good (not 5) when there's an attempt to insert a new purchase order into the `PurchaseOrderHeader` table. To get the credit rating of the vendor, the `Vendor` table must be referenced. If the credit rating is too low, a message appears and the insertion doesn't happen.  
+---------------------
 CREATE TRIGGER trg_audit_employee ON employee 
 AFTER INSERT, UPDATE, DELETE 
 AS SET NOCOUNT 
@@ -495,6 +496,7 @@ VALUES (
 GO  
   
 ```  
+---------------------------------------------------
 IF @new_emp_no IS NULL SET @Action = 'DELETE' ELSE  BEGIN  SELECT @old_emp_no = emp_no FROM deleted  IF @old_emp_no IS NULL SET @Action = 'INSERT'  ELSE SET @Action = 'UPDATE' END IF @Action IN ('DELETE', 'UPDATE')  SELECT @old_emp_no = emp_no,    @old_emp_fname = emp_fname,    @old_emp_lname = emp_lname,    @old_dept_no = dept_no,    @old_salary = salary  FROM deleted IF @Action IN ('INSERT', 'UPDATE')  SELECT @new_emp_no = emp_no,    @new_emp_fname = emp_fname,    @new_emp_lname = emp_lname,    @new_dept_no = dept_no,    @new_salary = salary 
  FROM inserted ----------------------------------------------------------------------- 
 
