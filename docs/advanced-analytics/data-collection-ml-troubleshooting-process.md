@@ -258,25 +258,7 @@ OutputDataSet = pandas.DataFrame(
 with WITH RESULT SETS (SQL keywords) ((PropertyName nvarchar(100), PropertyValue nvarchar(4000)));
 ```
 
-CREATE PROCEDURE usp_AddRandomEmployees(@number int)
-AS
-DECLARE @i INT
-DECLARE @emp_no INT
-SET @i = 0
-SET @emp_no = (CONVERT(INT, (RAND() * 10000)))
-SET NOCOUNT ON
-WHILE @i < @number
-BEGIN
- WHILE (SELECT COUNT(*) FROM employee WHERE emp_no = @emp_no) > 0
- BEGIN
- SET @emp_no = (CONVERT(INT, (RAND() * 100000)))
- END
- INSERT INTO employee VALUES(@emp_no, 'Jane', 'Smith', 'd1', NULL)
- SET @i = @i + 1
-END
-SET NOCOUNT OFF
------------------------------------------------------
-EXECUTE usp_AddRandomEmployees 5000
+
 There are several ways to get the Python version. The easiest way is to run this statement from Management Studio or any other SQL query tool:
 
 ```sql
@@ -423,7 +405,25 @@ The same conditions apply to Python.
 If you find that multiple libraries or runtimes are installed, make sure that you get only the errors associated with the Python or R runtimes that are used by the SQL Server instance.
 
 ## Origin of errors
+CREATE PROCEDURE usp_AddRandomEmployees(@number int)
+AS
+DECLARE @i INT
+DECLARE @emp_no INT
+SET @i = 0
+SET @emp_no = (CONVERT(INT, (RAND() * 10000)))
+SET NOCOUNT ON
+WHILE @i < @number
+BEGIN
+ WHILE (SELECT COUNT(*) FROM employee WHERE emp_no = @emp_no) > 0
+ BEGIN
+ SET @emp_no = (CONVERT(INT, (RAND() * 100000)))
+ END
+ INSERT INTO employee VALUES(@emp_no, 'Jane', 'Smith', 'd1', NULL)
+ SET @i = @i + 1
+END
+SET NOCOUNT OFF
 
+EXECUTE usp_AddRandomEmployees 5000
 The errors that you see when you attempt to run R code can come from any of the following sources:
 
 * SQL Server database engine, including the stored procedure sp_execute_external_script
