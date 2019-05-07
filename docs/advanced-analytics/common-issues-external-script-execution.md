@@ -1,233 +1,629 @@
 ---
-title: Common issues with Launchpad service and external script execution - SQL Server Machine Learning Services
+title: "CREATE TRIGGER (Transact-SQL) | Microsoft Docs"
+ms.custom: ""
+ms.date: "08/10/2017"
 ms.prod: sql
-ms.technology: 
-ms.date: 05/31/2018  
-ms.topic: conceptual
-author: dphansen
-ms.author: davidph
-manager: cgronlun
+ms.prod_service: "database-engine, sql-database"
+ms.reviewer: ""
+ms.technology: t-sql
+ms.topic: "language-reference"
+f1_keywords: 
+  - "CREATE TRIGGER"
+  - "TRIGGER"
+  - "CREATE_TRIGGER_TSQL"
+  - "TRIGGER_TSQL"
+dev_langs: 
+  - "TSQL"
+helpviewer_keywords: 
+  - "recursive DML triggers [SQL Server]"
+  - "CREATE TRIGGER statement"
+  - "multiple triggers"
+  - "deferred name resolution, DML triggers"
+  - "DML triggers, creating"
+  - "nested triggers"
+  - "server-scoped triggers"
+  - "DDL triggers, creating"
+  - "triggers [SQL Server], creating"
+  - "database-scoped triggers [SQL Server]"
+ms.assetid: edeced03-decd-44c3-8c74-2c02f801d3e7
+author: CarlRabeler
+ms.author: carlrab
+manager: craigg
+ms.reviewer: mathoma
 ---
-# Common issues with Launchpad service and external script execution in SQL Server
-[!INCLUDE[appliesto-ss-xxxx-xxxx-xxx-md-winonly](../includes/appliesto-ss-xxxx-xxxx-xxx-md-winonly.md)]
+# CREATE TRIGGER (Transact-SQL)
+[!INCLUDE[tsql-appliesto-ss2008-asdb-xxxx-xxx-md](../../includes/tsql-appliesto-ss2008-asdb-xxxx-xxx-md.md)]
 
- SQL Server Trusted Launchpad service supports external script execution for R and Python. On SQL Server 2016 R Services, SP1 provides the service. SQL Server 2017 includes the Launchpad service as part of the initial installation.
 
-Multiple issues can prevent Launchpad from starting, including configuration problems or changes, or missing network protocols. This article provides troubleshooting guidance for many issues. For any we missed, you can post questions to the [Machine Learning Server forum](https://social.msdn.microsoft.com/Forums/en-US/home?category=MicrosoftR).
+Creates a DML, DDL, or logon trigger. A trigger is a special type of stored procedure that automatically runs when an event occurs in the database server. DML triggers run when a user tries to modify data through a data manipulation language (DML) event. DML events are INSERT, UPDATE, or DELETE statements on a table or view. These triggers fire when any valid event fires, whether table rows are affected or not. For more information, see [DML Triggers](../../relational-databases/triggers/dml-triggers.md).  
+  
+DDL triggers run in response to a variety of data definition language (DDL) events. These events primarily correspond to [!INCLUDE[tsql](../../includes/tsql-md.md)] CREATE, ALTER, and DROP statements, and certain system stored procedures that perform DDL-like operations. 
 
-## Determine whether Launchpad is running
+Logon triggers fire in response to the LOGON event that's raised when a user's session is being established. You can create triggers directly from [!INCLUDE[tsql](../../includes/tsql-md.md)] statements or from methods of assemblies that are created in the [!INCLUDE[msCoName](../../includes/msconame-md.md)] [!INCLUDE[dnprdnshort](../../includes/dnprdnshort-md.md)] common language runtime (CLR) and uploaded to an instance of [!INCLUDE[ssNoVersion](../../includes/ssnoversion-md.md)]. [!INCLUDE[ssNoVersion](../../includes/ssnoversion-md.md)] lets you create multiple triggers for any specific statement.  
+  
+> [!IMPORTANT]  
+>  Malicious code inside triggers can run under escalated privileges. For more information on how to mitigate this threat, see [Manage Trigger Security](../../relational-databases/triggers/manage-trigger-security.md).  
+  
+> [!NOTE]  
+>  The integration of .NET Framework CLR into SQL Server is discussed in this article. CLR integration does not apply to Azure SQL Database.  
+  
+![Topic link icon](../../database-engine/configure-windows/media/topic-link.gif "Topic link icon") [Transact-SQL Syntax Conventions](../../t-sql/language-elements/transact-sql-syntax-conventions-transact-sql.md)  
+  
+## Syntax  
+  
+``` 
+-- SQL Server Syntax  
+-- Trigger on an INSERT, UPDATE, or DELETE statement to a table or view (DML Trigger)  
+  
+CREATE [ OR ALTER ] TRIGGER [ schema_name . ]trigger_name   
+ON { table | view }   
+[ WITH <dml_trigger_option> [ ,...n ] ]  
+{ FOR | AFTER | INSTEAD OF }   
+{ [ INSERT ] [ , ] [ UPDATE ] [ , ] [ DELETE ] }   
+[ WITH APPEND ]  
+[ NOT FOR REPLICATION ]   
+AS { sql_statement  [ ; ] [ ,...n ] | EXTERNAL NAME <method specifier [ ; ] > }  
+  
+<dml_trigger_option> ::=  
+    [ ENCRYPTION ]  
+    [ EXECUTE AS Clause ]  
+  
+<method_specifier> ::=  
+    assembly_name.class_name.method_name  
+  
+```  
+  
+``` 
+-- SQL Server Syntax  
+-- Trigger on an INSERT, UPDATE, or DELETE statement to a 
+-- table (DML Trigger on memory-optimized tables)  
+  
+CREATE [ OR ALTER ] TRIGGER [ schema_name . ]trigger_name   
+ON { table }   
+[ WITH <dml_trigger_option> [ ,...n ] ]  
+{ FOR | AFTER }   
+{ [ INSERT ] [ , ] [ UPDATE ] [ , ] [ DELETE ] }   
+AS { sql_statement  [ ; ] [ ,...n ] }  
+  
+<dml_trigger_option> ::=  
+    [ NATIVE_COMPILATION ]  
+    [ SCHEMABINDING ]  
+    [ EXECUTE AS Clause ]  
+  
+```  
+  
+``` 
+-- Trigger on a CREATE, ALTER, DROP, GRANT, DENY, 
+-- REVOKE or UPDATE statement (DDL Trigger)  
+  
+CREATE [ OR ALTER ] TRIGGER trigger_name   
+ON { ALL SERVER | DATABASE }   
+[ WITH <ddl_trigger_option> [ ,...n ] ]  
+{ FOR | AFTER } { event_type | event_group } [ ,...n ]  
+AS { sql_statement  [ ; ] [ ,...n ] | EXTERNAL NAME < method specifier >  [ ; ] }  
+  
+<ddl_trigger_option> ::=  
+    [ ENCRYPTION ]  
+    [ EXECUTE AS Clause ]  
+  
+```  
+  
+```  
+-- Trigger on a LOGON event (Logon Trigger)  
+  
+CREATE [ OR ALTER ] TRIGGER trigger_name   
+ON ALL SERVER   
+[ WITH <logon_trigger_option> [ ,...n ] ]  
+{ FOR| AFTER } LOGON    
+AS { sql_statement  [ ; ] [ ,...n ] | EXTERNAL NAME < method specifier >  [ ; ] }  
+  
+<logon_trigger_option> ::=  
+    [ ENCRYPTION ]  
+    [ EXECUTE AS Clause ]  
+  
+```  
+  
+## Syntax  
+  
+``` 
+-- Azure SQL Database Syntax   
+-- Trigger on an INSERT, UPDATE, or DELETE statement to a table or view (DML Trigger)  
+  
+CREATE [ OR ALTER ] TRIGGER [ schema_name . ]trigger_name   
+ON { table | view }   
+ [ WITH <dml_trigger_option> [ ,...n ] ]   
+{ FOR | AFTER | INSTEAD OF }   
+{ [ INSERT ] [ , ] [ UPDATE ] [ , ] [ DELETE ] }   
+  AS { sql_statement  [ ; ] [ ,...n ] [ ; ] > }  
+  
+<dml_trigger_option> ::=   
+        [ EXECUTE AS Clause ]  
+  
+```  
+  
+```  
+-- Azure SQL Database Syntax  
+-- Trigger on a CREATE, ALTER, DROP, GRANT, DENY, 
+-- REVOKE, or UPDATE STATISTICS statement (DDL Trigger)   
+  
+CREATE [ OR ALTER ] TRIGGER trigger_name   
+ON { DATABASE }   
+ [ WITH <ddl_trigger_option> [ ,...n ] ]   
+{ FOR | AFTER } { event_type | event_group } [ ,...n ]   
+AS { sql_statement  [ ; ] [ ,...n ]  [ ; ] }  
+  
+<ddl_trigger_option> ::=   
+    [ EXECUTE AS Clause ]  
+```  
+  
+## Arguments
+OR ALTER  
+**Applies to**: Azure [!INCLUDE[ssSDS](../../includes/sssds-md.md)], [!INCLUDE[ssNoVersion](../../includes/ssnoversion-md.md)] (starting with [!INCLUDE[ssSQL15](../../includes/sssql15-md.md)] SP1). 
+  
+Conditionally alters the trigger only if it already exists. 
+  
+*schema_name*  
+The name of the schema to which a DML trigger belongs. DML triggers are scoped to the schema of the table or view on which they're created. *schema_name* can't be specified for DDL or logon triggers.  
+  
+*trigger_name*  
+The name of the trigger. A *trigger_name* must follow the rules for [identifiers](../../relational-databases/databases/database-identifiers.md), except that *trigger_name* can't start with # or ##.  
+  
+*table* | *view*  
+The table or view on which the DML trigger runs. This table or view is sometimes referred to as the trigger table or trigger view. Specifying the fully qualified name of the table or view is optional. You can only reference a view by an INSTEAD OF trigger. You can't define DML triggers on local or global temporary tables.  
+  
+DATABASE  
+Applies the scope of a DDL trigger to the current database. If specified, the trigger fires whenever *event_type* or *event_group* occurs in the current database.  
+  
+ALL SERVER  
+**Applies to**: [!INCLUDE[ssKatmai](../../includes/sskatmai-md.md)] through [!INCLUDE[ssCurrent](../../includes/sscurrent-md.md)].  
+  
+Applies the scope of a DDL or logon trigger to the current server. If specified, the trigger fires whenever *event_type* or *event_group* occurs anywhere in the current server.  
+  
+WITH ENCRYPTION  
+**Applies to**: [!INCLUDE[ssKatmai](../../includes/sskatmai-md.md)] through [!INCLUDE[ssCurrent](../../includes/sscurrent-md.md)].  
+  
+Obscures the text of the CREATE TRIGGER statement. Using WITH ENCRYPTION prevents the trigger from being published as part of [!INCLUDE[ssNoVersion](../../includes/ssnoversion-md.md)] replication. WITH ENCRYPTION can't be specified for CLR triggers.  
+  
+EXECUTE AS  
+Specifies the security context under which the trigger is executed. Enables you to control which user account the instance of [!INCLUDE[ssNoVersion](../../includes/ssnoversion-md.md)] uses to validate permissions on any database objects that are referenced by the trigger.  
+  
+This option is required for triggers on memory-optimized tables.  
+  
+For more information, see[EXECUTE AS Clause &#40;Transact-SQL&#41;](../../t-sql/statements/execute-as-clause-transact-sql.md).  
+  
+NATIVE_COMPILATION  
+Indicates that the trigger is natively compiled.  
+  
+This option is required for triggers on memory-optimized tables.  
+  
+SCHEMABINDING  
+Ensures that tables referenced by a trigger can't be dropped or altered.  
+  
+This option is required for triggers on memory-optimized tables and isn't supported for triggers on traditional tables.  
+  
+FOR | AFTER  
+AFTER specifies that the DML trigger fires only when all operations specified in the triggering SQL statement have launched successfully. All referential cascade actions and constraint checks must also succeed before this trigger fires.  
+  
+AFTER is the default when FOR is the only keyword specified.  
+  
+You can't define AFTER triggers on views.  
+  
+INSTEAD OF  
+Specifies that the DML trigger launches *instead of* the triggering SQL statement, thus, overriding the actions of the triggering statements. You can't specify INSTEAD OF for DDL or logon triggers.  
+  
+At most, you can define one INSTEAD OF trigger per INSERT, UPDATE, or DELETE statement on a table or view. You can also define views on views where each view has its own INSTEAD OF trigger.  
+  
+You can't define INSTEAD OF triggers on updatable views that use WITH CHECK OPTION. [!INCLUDE[ssNoVersion](../../includes/ssnoversion-md.md)] Doing so results in an error when an INSTEAD OF trigger is added to an updatable view WITH CHECK OPTION specified. You remove that option by using ALTER VIEW before defining the INSTEAD OF trigger.  
+  
+{ [ DELETE ] [ , ] [ INSERT ] [ , ] [ UPDATE ] }  
+Specifies the data modification statements that activate the DML trigger when it's tried against this table or view. Specify at least one option. Use any combination of these options in any order in the trigger definition.  
+  
+For INSTEAD OF triggers, you can't use the DELETE option on tables that have a referential relationship, specifying a cascade action ON DELETE. Similarly, the UPDATE option isn't allowed on tables that have a referential relationship, specifying a cascade action ON UPDATE.  
+  
+WITH APPEND  
+**Applies to**: [!INCLUDE[ssKatmai](../../includes/sskatmai-md.md)] through [!INCLUDE[ssKilimanjaro](../../includes/sskilimanjaro-md.md)].  
+  
+Specifies that an additional trigger of an existing type should be added. WITH APPEND can't be used with INSTEAD OF triggers or if an AFTER trigger is explicitly stated. For backward compatibility, only use WITH APPEND when FOR is specified, without INSTEAD OF or AFTER. You can't specify WITH APPEND if using EXTERNAL NAME (that is, if the trigger is a CLR trigger).  
+  
+*event_type*  
+The name of a [!INCLUDE[tsql](../../includes/tsql-md.md)] language event that, after launch, causes a DDL trigger to fire. Valid events for DDL triggers are listed in [DDL Events](../../relational-databases/triggers/ddl-events.md).  
+  
+*event_group*  
+The name of a predefined grouping of [!INCLUDE[tsql](../../includes/tsql-md.md)] language events. The DDL trigger fires after launch of any [!INCLUDE[tsql](../../includes/tsql-md.md)] language event that belongs to *event_group*. Valid event groups for DDL triggers are listed in [DDL Event Groups](../../relational-databases/triggers/ddl-event-groups.md).  
+  
+After the CREATE TRIGGER has finished running, *event_group* also acts as a macro by adding the event types it covers to the sys.trigger_events catalog view.  
+  
+NOT FOR REPLICATION  
+**Applies to**: [!INCLUDE[ssKatmai](../../includes/sskatmai-md.md)] through [!INCLUDE[ssCurrent](../../includes/sscurrent-md.md)].  
+  
+Indicates that the trigger shouldn't be run when a replication agent modifies the table that's involved in the trigger.  
+  
+*sql_statement*  
+The trigger conditions and actions. Trigger conditions specify additional criteria that determine whether the tried DML, DDL, or logon events cause the trigger actions to be run.  
+  
+The trigger actions specified in the [!INCLUDE[tsql](../../includes/tsql-md.md)] statements go into effect when the operation is tried.  
+  
+Triggers can include any number and type of [!INCLUDE[tsql](../../includes/tsql-md.md)] statements, with exceptions. For more information, see Remarks. A trigger is designed to check or change data based on a data modification or definition statement; it should't return data to the user. The [!INCLUDE[tsql](../../includes/tsql-md.md)] statements in a trigger frequently include [control-of-flow language](~/t-sql/language-elements/control-of-flow.md).  
+  
+DML triggers use the deleted and inserted logical (conceptual) tables. They're structurally similar to the table on which the trigger is defined, that is, the table on which the user action is tried. The deleted and inserted tables hold the old values or new values of the rows that may be changed by the user action. For example, to retrieve all values in the `deleted` table, use:  
+  
+```sql  
+SELECT * FROM deleted;  
+```  
+  
+For more information, see [Use the inserted and deleted Tables](../../relational-databases/triggers/use-the-inserted-and-deleted-tables.md).  
+  
+DDL and logon triggers capture information about the triggering event by using the [EVENTDATA &#40;Transact-SQL&#41;](../../t-sql/functions/eventdata-transact-sql.md) function. For more information, see [Use the EVENTDATA Function](../../relational-databases/triggers/use-the-eventdata-function.md).  
+  
+[!INCLUDE[ssNoVersion](../../includes/ssnoversion-md.md)] allows the update of **text**, **ntext**, or **image** columns through the INSTEAD OF trigger on tables or views.  
+  
+> [!IMPORTANT]
+>  **ntext**, **text**, and **image** data types will be removed in a future version of [!INCLUDE[msCoName](../../includes/msconame-md.md)][!INCLUDE[ssNoVersion](../../includes/ssnoversion-md.md)]. Avoid using these data types in new development work, and plan to modify applications that currently use them. Use [nvarchar(max)](../../t-sql/data-types/nchar-and-nvarchar-transact-sql.md), [varchar(max)](../../t-sql/data-types/char-and-varchar-transact-sql.md), and [varbinary(max)](../../t-sql/data-types/binary-and-varbinary-transact-sql.md) instead. Both AFTER and INSTEAD OF triggers support **varchar(MAX)**, **nvarchar(MAX)**, and **varbinary(MAX)** data in the inserted and deleted tables.  
+  
+For triggers on memory-optimized tables, the only *sql_statement* allowed at the top level is an ATOMIC block. The T-SQL allowed inside the ATOMIC block is limited by the T-SQL allowed inside native procs.  
+  
+\< method_specifier > 
+**Applies to**: [!INCLUDE[ssKatmai](../../includes/sskatmai-md.md)] through [!INCLUDE[ssCurrent](../../includes/sscurrent-md.md)].  
+  
+For a CLR trigger, specifies the method of an assembly to bind with the trigger. The method must take no arguments and return void. *class_name* must be a valid [!INCLUDE[ssNoVersion](../../includes/ssnoversion-md.md)] identifier and must exist as a class in the assembly with assembly visibility. If the class has a namespace-qualified name that uses '.' to separate namespace parts, the class name must be delimited by using [ ] or " " delimiters. The class can't be a nested class.  
+  
+> [!NOTE]  
+>  By default, the ability of [!INCLUDE[ssNoVersion](../../includes/ssnoversion-md.md)] to run CLR code is off. You can create, modify, and drop database objects that reference managed code modules, but these references don't run in an instance of [!INCLUDE[ssNoVersion](../../includes/ssnoversion-md.md)] unless the [clr enabled Option](../../database-engine/configure-windows/clr-enabled-server-configuration-option.md) is enabled by using [sp_configure](../../relational-databases/system-stored-procedures/sp-configure-transact-sql.md).  
+  
+## Remarks for DML Triggers  
+DML triggers are frequently used for enforcing business rules and data integrity. [!INCLUDE[ssNoVersion](../../includes/ssnoversion-md.md)] provides declarative referential integrity (DRI) through the ALTER TABLE and CREATE TABLE statements. However, DRI doesn't provide cross-database referential integrity. Referential integrity refers to the rules about the relationships between the primary and foreign keys of tables. To enforce referential integrity, use the PRIMARY KEY and FOREIGN KEY constraints in ALTER TABLE and CREATE TABLE. If constraints exist on the trigger table, they're checked after the INSTEAD OF trigger runs and before the AFTER trigger runs. If the constraints are violated, the INSTEAD OF trigger actions are rolled back and the AFTER trigger isn't fired.  
+  
+You can specify the first and last AFTER triggers to be run on a table by using sp_settriggerorder. You can specify only one first and one last AFTER trigger for each INSERT, UPDATE, and DELETE operation on a table. If there are other AFTER triggers on the same table, they're randomly run.  
+  
+If an ALTER TRIGGER statement changes a first or last trigger, the first or last attribute set on the modified trigger is dropped, and you must reset the order value by using sp_settriggerorder.  
+  
+An AFTER trigger is run only after the triggering SQL statement has run successfully. This successful execution includes all referential cascade actions and constraint checks associated with the object updated or deleted. An AFTER does not recursively fire an INSTEAD OF trigger on the same table.  
+  
+If an INSTEAD OF trigger defined on a table runs a statement against the table that would ordinarily fire the INSTEAD OF trigger again, the trigger isn't called recursively. Instead, the statement processes as if the table had no INSTEAD OF trigger and starts the chain of constraint operations and AFTER trigger executions. For example, if a trigger is defined as an INSTEAD OF INSERT trigger for a table. And, the trigger runs an INSERT statement on the same table, the INSERT statement launched by the INSTEAD OF trigger doesn't call the trigger again. The INSERT launched by the trigger starts the process of running constraint actions and firing any AFTER INSERT triggers defined for the table.  
+  
+When an INSTEAD OF trigger defined on a view runs a statement against the view that would ordinarily fire the INSTEAD OF trigger again, it's not called recursively. Instead, the statement is resolved as modifications against the base tables underlying the view. In this case, the view definition must meet all the restrictions for an updatable view. For a definition of updatable views, see [Modify Data Through a View](../../relational-databases/views/modify-data-through-a-view.md).  
+  
+For example, if a trigger is defined as an INSTEAD OF UPDATE trigger for a view. And, the trigger runs an UPDATE statement referencing the same view, the UPDATE statement launched by the INSTEAD OF trigger doesn't call the trigger again. The UPDATE launched by the trigger is processed against the view as if the view didn't have an INSTEAD OF trigger. The columns changed by the UPDATE must be resolved to a single base table. Each modification to an underlying base table starts the chain of applying constraints and firing AFTER triggers defined for the table.  
+  
+### Testing for UPDATE or INSERT Actions to Specific Columns  
+You can design a [!INCLUDE[tsql](../../includes/tsql-md.md)] trigger to do certain actions based on UPDATE or INSERT modifications to specific columns. Use [UPDATE()](../../t-sql/functions/update-trigger-functions-transact-sql.md) or [COLUMNS_UPDATED](../../t-sql/functions/columns-updated-transact-sql.md) in the body of the trigger for this purpose. UPDATE() tests for UPDATE or INSERT attempts on one column. COLUMNS_UPDATED tests for UPDATE or INSERT actions that run on multiple columns. This function returns a bit pattern that indicates which columns were inserted or updated.  
+  
+### Trigger Limitations  
+CREATE TRIGGER must be the first statement in the batch and can apply to only one table.  
+  
+A trigger is created only in the current database; however, a trigger can reference objects outside the current database.  
+  
+If the trigger schema name is specified to qualify the trigger, qualify the table name in the same way.  
+  
+The same trigger action can be defined for more than one user action (for example, INSERT and UPDATE) in the same CREATE TRIGGER statement.  
+  
+INSTEAD OF DELETE/UPDATE triggers can't be defined on a table that has a foreign key with a cascade on DELETE/UPDATE action defined.  
+  
+Any SET statement can be specified inside a trigger. The SET option selected remains in effect during the execution of the trigger and then reverts to its former setting.  
+  
+When a trigger fires, results are returned to the calling application, just like with stored procedures. To prevent results being returned to an application because of a trigger firing, don't include either SELECT statements that return results or statements that carry out variable assignment in a trigger. A trigger that includes either SELECT statements that return results to the user or statements that do variable assignment, requires special handling. You'd have to write the returned results into every application in which modifications to the trigger table are allowed. If variable assignment must occur in a trigger, use a SET NOCOUNT statement at the start of the trigger to prevent the return of any result sets.  
+  
+Although a TRUNCATE TABLE statement is in effect a DELETE statement, it doesn't activate a trigger because the operation doesn't log individual row deletions. However, only those users with permissions to run a TRUNCATE TABLE statement need be concerned about inadvertently circumventing a DELETE trigger this way.  
+  
+The WRITETEXT statement, whether logged or unlogged, doesn't activate a trigger.  
+  
+The following [!INCLUDE[tsql](../../includes/tsql-md.md)] statements aren't allowed in a DML trigger:  
+  
+||||  
+|-|-|-|  
+|ALTER DATABASE|CREATE DATABASE|DROP DATABASE|  
+|RESTORE DATABASE|RESTORE LOG|RECONFIGURE|  
+  
+Additionally, the following [!INCLUDE[tsql](../../includes/tsql-md.md)] statements aren't allowed inside the body of a DML trigger when it's used against the table or view that's the target of the triggering action.  
+  
+||||  
+|-|-|-|  
+|CREATE INDEX (including CREATE SPATIAL INDEX and CREATE XML INDEX)|ALTER INDEX|DROP INDEX|  
+|DBCC DBREINDEX|ALTER PARTITION FUNCTION|DROP TABLE|  
+|ALTER TABLE when used to do the following:<br /><br /> Add, modify, or drop columns.<br /><br /> Switch partitions.<br /><br /> Add or drop PRIMARY KEY or UNIQUE constraints.|||  
+  
+> [!NOTE]  
+>  Because [!INCLUDE[ssNoVersion](../../includes/ssnoversion-md.md)] does not support user-defined triggers on system tables, we recommend that you do not create user-defined triggers on system tables. 
 
-1. Open the **Services** panel (Services.msc). Or, from the command line, type **SQLServerManager13.msc** or **SQLServerManager14.msc** to open [SQL Server Configuration Manager](https://docs.microsoft.com/sql/relational-databases/sql-server-configuration-manager).
+### Optimizing DML Triggers
+Triggers work in transactions (implied or otherwise) and while they're open, they lock resources. The lock remains in place until the transaction is confirmed (with COMMIT) or rejected (with a ROLLBACK). The longer a trigger runs, the higher the probability that another process is then blocked. So, write triggers to lessen their duration whenever possible. One way to achieve shorter duration is to release a trigger when a DML statement changes zero rows. 
 
-2. Make a note of the service account that Launchpad is running under. Each instance where R or Python is enabled should have its own instance of the Launchpad service. For example, the service for a named instance might be something like _MSSQLLaunchpad$InstanceName_.
+To release the trigger for a command that doesn't change any rows, employ the system variable  [ROWCOUNT_BIG](../functions/rowcount-big-transact-sql.md). 
 
-3. If the service is stopped, restart it. On restarting, if there are any issues with configuration, a message is published in the system event log, and the service is stopped again. Check the system event log for details about why the service stopped.
-
-4. Review the contents of RSetup.log, and make sure that there are no errors in the setup. For example, the message *Exiting with code 0* indicates failure of the service to start.
-
-5. To look for other errors, review the contents of rlauncher.log.
-
-## Check the Launchpad service account
-
-The default service account might be "NT Service\$SQL2016" or "NT Service\$SQL2017". The final part might vary, depending on your SQL instance name.
-
-The Launchpad service (Launchpad.exe) runs by using a low-privilege service account. However, to start R and Python and communicate with the database instance, the Launchpad service account requires the following user rights:
-
-- Log on as a service (SeServiceLogonRight)
-- Replace a process-level token (SeAssignPrimaryTokenPrivilege)
-- Bypass traverse checking (SeChangeNotifyPrivilege)
-- Adjust memory quotas for a process (SeIncreaseQuotaSizePrivilege)
-
-For information about these user rights, see the "Windows privileges and rights" section in [Configure Windows service accounts and permissions](../database-engine/configure-windows/configure-windows-service-accounts-and-permissions.md).
-
-> [!TIP]
-> If you are familiar with the use of the Support Diagnostics Platform (SDP) tool for SQL Server diagnostics, you can use SDP to review the output file with the name MachineName_UserRights.txt.
-
-## User group for Launchpad cannot log on locally
-
-During setup of Machine Learning Services, SQL Server creates the Windows user group **SQLRUserGroup** and then provisions it with all rights necessary for Launchpad to connect to SQL Server and run external script jobs. If this user group is enabled, it is also used to execute Python scripts.
-
-However, in organizations where more restrictive security policies are enforced, the rights that are required by this group might have been manually removed, or they might be automatically revoked by policy. If the rights have been removed, Launchpad can no longer connect to SQL Server, and SQL Server cannot call the external runtime.
-
-To correct the problem, ensure that the group **SQLRUserGroup** has the system right **Allow log on locally**.
-
-For more information, see [Configure Windows service accounts and permissions](../database-engine/configure-windows/configure-windows-service-accounts-and-permissions.md).
-
-## Permissions to run external scripts
-
-Even if Launchpad is configured correctly, it returns an error if the user does not have permission to run R or Python scripts.
-
-If you installed SQL Server as a database administrator or you are a database owner, you are automatically granted this permission. However, other users usually have more limited permissions. If they try to run an R script, they get a Launchpad error.
-
-To correct the problem, in SQL Server Management Studio, a security administrator can modify the SQL login or Windows user account by running the following script:
+The following T-SQL code snippet shows how to release the trigger for a command that doesn't change any rows. This code should be present at the beginning of each DML trigger:
 
 ```sql
-GRANT EXECUTE ANY EXTERNAL SCRIPT TO <username>
+IF (ROWCOUNT_BIG() = 0)
+RETURN;
 ```
+  
+  
+## Remarks for DDL Triggers  
+DDL triggers, like standard triggers, launch stored procedures in response to an event. But, unlike standard triggers, they don't run in response to UPDATE, INSERT, or DELETE statements on a table or view. Instead, they primarily run in response to data definition language (DDL) statements. The statement types include CREATE, ALTER, DROP, GRANT, DENY, REVOKE, and UPDATE STATISTICS. Certain system stored procedures that carry out DDL-like operations can also fire DDL triggers.  
+  
+> [!IMPORTANT]  
+>  Test your DDL triggers to determine their responses to system stored procedure execution. For example, the CREATE TYPE statement and the sp_addtype and sp_rename stored procedures fire a DDL trigger that's created on a CREATE_TYPE event.  
+  
+For more information about DDL triggers, see [DDL Triggers](../../relational-databases/triggers/ddl-triggers.md).  
+  
+DDL triggers don't fire in response to events that affect local or global temporary tables and stored procedures.  
+  
+Unlike DML triggers, DDL triggers aren't scoped to schemas. So, you can't use functions such as OBJECT_ID, OBJECT_NAME, OBJECTPROPERTY, and OBJECTPROPERTYEX for querying metadata about DDL triggers. Use the catalog views instead. For more information, see [Get Information About DDL Triggers](../../relational-databases/triggers/get-information-about-ddl-triggers.md).  
+  
+> [!NOTE]  
+>  Server-scoped DDL triggers appear in the [!INCLUDE[ssManStudioFull](../../includes/ssmanstudiofull-md.md)] Object Explorer in the **Triggers** folder. This folder is located under the **Server Objects** folder. Database-scoped DDL Triggers appear in the **Database Triggers** folder. This folder is located under the **Programmability** folder of the corresponding database.  
+  
+## Logon Triggers  
+Logon triggers carry out stored procedures in response to a LOGON event. This event happens when a user session is established with an instance of [!INCLUDE[ssNoVersion](../../includes/ssnoversion-md.md)]. Logon triggers fire after the authentication phase of logging in finishes, but before the user session is established. So, all messages originating inside the trigger that would typically reach the user, such as error messages and messages from the PRINT statement, are diverted to the [!INCLUDE[ssNoVersion](../../includes/ssnoversion-md.md)] error log. For more information, see [Logon Triggers](../../relational-databases/triggers/logon-triggers.md).  
+  
+Logon triggers don't fire if authentication fails.  
+  
+Distributed transactions aren't supported in a logon trigger. Error 3969 returns when a logon trigger that contains a distributed transaction fire.  
+  
+### Disabling a Logon Trigger  
+A logon trigger can effectively prevent successful connections to the [!INCLUDE[ssDE](../../includes/ssde-md.md)] for all users, including members of the **sysadmin** fixed server role. When a logon trigger is preventing connections, members of the **sysadmin** fixed server role can connect by using the dedicated administrator connection, or by starting the [!INCLUDE[ssDE](../../includes/ssde-md.md)] in minimal configuration mode (-f). For more information, see [Database Engine Service Startup Options](../../database-engine/configure-windows/database-engine-service-startup-options.md).  
+  
+## General Trigger Considerations  
+  
+### Returning Results  
+The ability to return results from triggers will be removed in a future version of SQL Server. Triggers that return result sets may cause unexpected behavior in applications that aren't designed to work with them. Avoid returning result sets from triggers in new development work, and plan to modify applications that currently do. To prevent triggers from returning result sets, set the [disallow results from triggers option](../../database-engine/configure-windows/disallow-results-from-triggers-server-configuration-option.md) to 1.  
+  
+Logon triggers always disallow the return of results sets and this behavior isn't configurable. If a logon trigger generates a result set, the trigger fails to launch and the login attempt that fired the trigger is denied.  
+  
+### Multiple Triggers  
+[!INCLUDE[ssNoVersion](../../includes/ssnoversion-md.md)] lets you create multiple triggers for each DML, DDL, or LOGON event. For example, if CREATE TRIGGER FOR UPDATE is run for a table that already has an UPDATE trigger, an additional update trigger is created. In earlier versions of [!INCLUDE[ssNoVersion](../../includes/ssnoversion-md.md)], only one trigger for each INSERT, UPDATE, or DELETE data modification event is allowed for each table.  
+  
+### Recursive Triggers  
+[!INCLUDE[ssNoVersion](../../includes/ssnoversion-md.md)] also supports recursive invocation of triggers when the RECURSIVE_TRIGGERS setting is enabled using ALTER DATABASE.  
+  
+Recursive triggers enable the following types of recursion to occur:  
+  
+-   Indirect recursion  
+  
+     With indirect recursion, an application updates table T1. This fires trigger TR1, updating table T2. Trigger T2 then fires and updates table T1.  
+  
+-   Direct recursion  
+  
+     In direct recursion, the application updates table T1. This fires trigger TR1, updating table T1. Because table T1 was updated, trigger TR1 fires again, and so on.  
+  
+The following example uses both indirect and direct trigger recursion Assume that two update triggers, TR1 and TR2, are defined on table T1. Trigger TR1 updates table T1 recursively. An UPDATE statement runs each TR1 and TR2 one time. Additionally, the launch of TR1 triggers the execution of TR1 (recursively) and TR2. The inserted and deleted tables for a specific trigger contain rows that correspond only to the UPDATE statement that invoked the trigger.  
+  
+> [!NOTE]  
+>  The previous behavior occurs only if the RECURSIVE_TRIGGERS setting is enabled by using ALTER DATABASE. There's no defined order in which multiple triggers defined for a specific event are run. Each trigger should be self-contained.  
+  
+Disabling the RECURSIVE_TRIGGERS setting only prevents direct recursions. To disable indirect recursion also, set the nested triggers server option to 0 by using sp_configure.  
+  
+If any one of the triggers carries out a ROLLBACK TRANSACTION, regardless of the nesting level, no more triggers are run.  
+  
+### Nested Triggers  
+You can nest triggers to a maximum of 32 levels. If a trigger changes a table on which there's another trigger, the second trigger activates and can then call a third trigger, and so on. If any trigger in the chain sets off an infinite loop, the nesting level is exceeded and the trigger is canceled. When a [!INCLUDE[tsql](../../includes/tsql-md.md)] trigger launches managed code by referencing a CLR routine, type, or aggregate, this reference counts as one level against the 32-level nesting limit. Methods invoked from within managed code don't count against this limit.  
+  
+To disable nested triggers, set the nested triggers option of sp_configure to 0 (off). The default configuration supports nested triggers. If nested triggers are off, recursive triggers are also disabled, despite the RECURSIVE_TRIGGERS setting that's set by using ALTER DATABASE.  
+  
+The first AFTER trigger nested inside an INSTEAD OF trigger fires even if the **nested triggers** server configuration option is 0. But, under this setting, the later AFTER triggers don't fire. Review your applications for nested triggers to determine if the applications follow your business rules when the **nested triggers** server configuration option is set to 0. If not, make the appropriate modifications.  
+  
+### Deferred Name Resolution  
+[!INCLUDE[ssNoVersion](../../includes/ssnoversion-md.md)] allows for [!INCLUDE[tsql](../../includes/tsql-md.md)] stored procedures, triggers, and batches to refer to tables that don't exist at compile time. This ability is called deferred name resolution.  
+  
+## Permissions  
+To create a DML trigger, it requires ALTER permission on the table or view on which the trigger is being created.  
+  
+To create a DDL trigger with server scope (ON ALL SERVER) or a logon trigger, requires CONTROL SERVER permission on the server. To create a DDL trigger with database scope (ON DATABASE), requires ALTER ANY DATABASE DDL TRIGGER permission in the current database.  
+  
+## Examples  
+  
+### A. Using a DML trigger with a reminder message  
+The following DML trigger prints a message to the client when anyone tries to add or change data in the `Customer` table in the [!INCLUDE[ssSampleDBnormal](../../includes/sssampledbnormal-md.md)] database.  
+  
+```sql  
+CREATE TRIGGER reminder1  
+ON Sales.Customer  
+AFTER INSERT, UPDATE   
+AS RAISERROR ('Notify Customer Relations', 16, 10);  
+GO  
+```  
+  
+### B. Using a DML trigger with a reminder e-mail message  
+The following example sends an e-mail message to a specified person (`MaryM`) when the `Customer` table changes.  
+  
+```sql  
+CREATE TRIGGER reminder2  
+ON Sales.Customer  
+AFTER INSERT, UPDATE, DELETE   
+AS  
+   EXEC msdb.dbo.sp_send_dbmail  
+        @profile_name = 'AdventureWorks2012 Administrator',  
+        @recipients = 'danw@Adventure-Works.com',  
+        @body = 'Don''t forget to print a report for the sales force.',  
+        @subject = 'Reminder';  
+GO  
+```  
+  
+### C. Using a DML AFTER trigger to enforce a business rule between the PurchaseOrderHeader and Vendor tables  
+Because CHECK constraints reference only the columns on which the column-level or table-level constraint is defined, you must define any cross-table constraints (in this case, business rules) as triggers.  
+  
+The following example creates a DML trigger in the AdventureWorks2012 database. This trigger checks to make sure the credit rating for the vendor is good (not 5) when there's an attempt to insert a new purchase order into the `PurchaseOrderHeader` table. To get the credit rating of the vendor, the `Vendor` table must be referenced. If the credit rating is too low, a message appears and the insertion doesn't happen.  
+  
+```sql  
+-- This trigger prevents a row from being inserted in the Purchasing.PurchaseOrderHeader 
+-- table when the credit rating of the specified vendor is set to 5 (below average).  
+  
+CREATE TRIGGER Purchasing.LowCredit ON Purchasing.PurchaseOrderHeader  
+AFTER INSERT  
+AS  
+IF (ROWCOUNT_BIG() = 0)
+RETURN;
+IF EXISTS (SELECT *  
+           FROM Purchasing.PurchaseOrderHeader AS p   
+           JOIN inserted AS i   
+           ON p.PurchaseOrderID = i.PurchaseOrderID   
+           JOIN Purchasing.Vendor AS v   
+           ON v.BusinessEntityID = p.VendorID  
+           WHERE v.CreditRating = 5  
+          )  
+BEGIN  
+RAISERROR ('A vendor''s credit rating is too low to accept new  
+purchase orders.', 16, 1);  
+ROLLBACK TRANSACTION;  
+RETURN   
+END;  
+GO  
+-- This statement attempts to insert a row into the PurchaseOrderHeader table  
+-- for a vendor that has a below average credit rating.  
+-- The AFTER INSERT trigger is fired and the INSERT transaction is rolled back.  
+
+CREATE TRIGGER trg_audit_employee ON employee 
+AFTER INSERT, UPDATE, DELETE 
+AS SET NOCOUNT 
+ON DECLARE @old_emp_no int = NULL DECLARE @old_emp_fname char(20) = NULL, @old_emp_lname char(20) = NULL DECLARE @old_dept_no char(4) = NULL, @old_salary money = NULL DECLARE @new_emp_no int = NULL DECLARE @new_emp_fname char(20) = NULL, @new_emp_lname char(20) = NULL DECLARE @new_dept_no char(4) = NULL, @new_salary money = NULL DECLARE @Action CHAR(6) DECLARE @user VARCHAR(255) = '' SELECT @user = CURRENT_USER SELECT @new_emp_no = emp_no FROM inserted 
+
+
+  
+INSERT INTO Purchasing.PurchaseOrderHeader (RevisionNumber, Status, EmployeeID,  
+VendorID, ShipMethodID, OrderDate, ShipDate, SubTotal, TaxAmt, Freight)  
+VALUES (  
+2  
+,3  
+,261  
+,1652  
+,4  
+,GETDATE()  
+,GETDATE()  
+,44594.55  
+,3567.564  
+,1114.8638 );  
+GO  
+  
+```  
+IF @new_emp_no IS NULL SET @Action = 'DELETE' ELSE  BEGIN  SELECT @old_emp_no = emp_no FROM deleted  IF @old_emp_no IS NULL SET @Action = 'INSERT'  ELSE SET @Action = 'UPDATE' END IF @Action IN ('DELETE', 'UPDATE')  SELECT @old_emp_no = emp_no,    @old_emp_fname = emp_fname,    @old_emp_lname = emp_lname,    @old_dept_no = dept_no,    @old_salary = salary  FROM deleted IF @Action IN ('INSERT', 'UPDATE')  SELECT @new_emp_no = emp_no,    @new_emp_fname = emp_fname,    @new_emp_lname = emp_lname,    @new_dept_no = dept_no,    @new_salary = salary 
+ FROM inserted ----------------------------------------------------------------------- 
+
+ 
+
+### D. Using a database-scoped DDL trigger  
+The following example uses a DDL trigger to prevent any synonym in a database from being dropped.  
+  
+```sql  
+CREATE TRIGGER safety   
+ON DATABASE   
+FOR DROP_SYNONYM  
+AS   
+IF (@@ROWCOUNT = 0)
+RETURN;
+   RAISERROR ('You must disable Trigger "safety" to drop synonyms!',10, 1)  
+   ROLLBACK  
+GO  
+DROP TRIGGER safety  
+ON DATABASE;  
+GO  
+```  
+ 
+IF UPDATE(emp_no) INSERT INTO audit (TableName, ActionTaken, ColumnName,       Old_Value, New_Value, CreatedBy)    VALUES ('employee', @Action, 'emp_no',      @old_emp_no, @new_emp_no, @user) IF UPDATE(emp_fname) INSERT INTO audit (TableName, ActionTaken, ColumnName,       Old_Value, New_Value, CreatedBy)    VALUES ('employee', @Action, 'emp_fname',      @old_emp_fname, @new_emp_fname, @user) IF UPDATE(emp_lname) INSERT INTO audit (TableName, ActionTaken, ColumnName,       Old_Value, New_Value, CreatedBy)    VALUES ('employee', @Action, 'emp_lname',      @old_emp_lname, @new_emp_lname, @user) IF UPDATE(dept_no) INSERT INTO audit (TableName, ActionTaken, ColumnName,       Old_Value, New_Value, CreatedBy)    VALUES ('employee', @Action, 'dept_no',      @old_dept_no, @new_dept_no, @user) IF UPDATE(salary) INSERT INTO audit (TableName, ActionTaken, ColumnName,       Old_Value, New_Value, CreatedBy)    VALUES ('employee', @Action, 'salary',      @old_salary, @new_salary, @user)   
+### E. Using a server-scoped DDL trigger  
+The following example uses a DDL trigger to print a message if any CREATE DATABASE event occurs on the current server instance, and uses the `EVENTDATA` function to retrieve the text of the corresponding [!INCLUDE[tsql](../../includes/tsql-md.md)] statement. For more examples that use EVENTDATA in DDL triggers, see [Use the EVENTDATA Function](../../relational-databases/triggers/use-the-eventdata-function.md).  
+SQL Server triggers are special stored procedures that are executed automatically in response to the database object, database, and server events. SQL Server provides three type of triggers:
+
+Data manipulation language (DML) triggers which are invoked automatically in response to INSERT, UPDATE, and DELETE events against tables.
+Data definition language (DDL) triggers which fire in response to CREATE, ALTER, and DROP statements. DDL triggers also fire in response to some system stored procedures that perform DDL-like operations.
+Logon triggers which fire in response to LOGON events
+In this section, you will learn how to effectively use triggers in SQL Server.
+
+Creating a trigger in SQL Server – show you how to create a trigger in response to insert and delete events.
+Creating an INSTEAD OF trigger – learn about the INSTEAD OF trigger and its practical applications.
+Creating a DDL trigger – learn how to create a DDL trigger to monitor the changes made to the structures of database objects such as tables, views, and indexes.
+Disabling triggers – learn how to disable a trigger of a table temporarily so that it does not fire when associated events occur.
+Enabling triggers – show you how to enable a trigger.
+Viewing the definition of a trigger – provide you with various ways to view the definition of a trigger.
+Listing all triggers in SQL Server – show you how to list all triggers in a SQL Server by querying data from the sys.triggers view.
+
+**Applies to**: [!INCLUDE[ssKatmai](../../includes/sskatmai-md.md)] through [!INCLUDE[ssCurrent](../../includes/sscurrent-md.md)].  
+-----------------------------------------------------------------------      IF @Action = 'DELETE' BEGIN INSERT INTO audit (TableName, ActionTaken, ColumnName,       Old_Value, New_Value, CreatedBy)    VALUES ('employee', @Action, 'emp_no',      @old_emp_no, @new_emp_no, @user) INSERT INTO audit (TableName, ActionTaken, ColumnName,       Old_Value, New_Value, CreatedBy)    VALUES ('employee', @Action, 'emp_fname',      @old_emp_fname, @new_emp_fname, @user) INSERT INTO audit (TableName, ActionTaken, ColumnName,       Old_Value, New_Value, CreatedBy)    VALUES ('employee', @Action, 'emp_lname',      @old_emp_lname, @new_emp_lname, @user) INSERT INTO audit (TableName, ActionTaken, ColumnName,       Old_Value, New_Value, CreatedBy)    VALUES ('employee', @Action, 'dept_no',      @old_dept_no, @new_dept_no, @user) INSERT INTO audit (TableName, ActionTaken, ColumnName,       Old_Value, New_Value, CreatedBy)    VALUES ('employee', @Action, 'salary',      @old_salary, @new_salary, @user) END SET NOCOUNT OFF ----------------------------------------------------------------------- INSERT INTO employee VALUES (2200,'Murphy','Williams','d3',NULL) UPDATE employee SET emp_fname = 'Oliver', emp_lname = 'Whalen' WHERE emp_no = 2200 
+UPDATE employee SET salary = 50000 WHERE emp_no = 2200 DELETE employee WHERE emp_no = 2200 SELECT * FROM audit TRUNCATE TABLE audit 
+     
+```sql  
+CREATE TRIGGER ddl_trig_database   
+ON ALL SERVER   
+FOR CREATE_DATABASE   
+AS   
+    PRINT 'Database Created.'  
+    SELECT EVENTDATA().value('(/EVENT_INSTANCE/TSQLCommand/CommandText)[1]','nvarchar(max)')  
+GO  
+DROP TRIGGER ddl_trig_database  
+ON ALL SERVER;  
+GO  
+```  
+  
+### F. Using a logon trigger  
+The following logon trigger example denies an attempt to log in to [!INCLUDE[ssNoVersion](../../includes/ssnoversion-md.md)] as a member of the *login_test* login if there are already three user sessions running under that login.  
+  
+**Applies to**: [!INCLUDE[ssKatmai](../../includes/sskatmai-md.md)] through [!INCLUDE[ssCurrent](../../includes/sscurrent-md.md)].  
+  
+```sql  
+USE master;  
+GO  
+CREATE LOGIN login_test WITH PASSWORD = '3KHJ6dhx(0xVYsdf' MUST_CHANGE,  
+    CHECK_EXPIRATION = ON;  
+GO  
+GRANT VIEW SERVER STATE TO login_test;  
+GO  
+CREATE TRIGGER connection_limit_trigger  
+ON ALL SERVER WITH EXECUTE AS 'login_test'  
+FOR LOGON  
+AS  
+BEGIN  
+IF ORIGINAL_LOGIN()= 'login_test' AND  
+    (SELECT COUNT(*) FROM sys.dm_exec_sessions  
+            WHERE is_user_process = 1 AND  
+                original_login_name = 'login_test') > 3  
+    ROLLBACK;  
+END;  
+  
+```  
+  
+### G. Viewing the events that cause a trigger to fire  
+The following example queries the `sys.triggers` and `sys.trigger_events` catalog views to determine which [!INCLUDE[tsql](../../includes/tsql-md.md)] language events cause trigger `safety` to fire. The trigger, `safety`, is created in example 'D', found above.  
+  
+```sql  
+SELECT TE.*  
+FROM sys.trigger_events AS TE  
+JOIN sys.triggers AS T ON T.object_id = TE.object_id  
+WHERE T.parent_class = 0 AND T.name = 'safety';  
+GO  
+```  
+
+    
+
+## See Also  
+ [ALTER TABLE &#40;Transact-SQL&#41;](../../t-sql/statements/alter-table-transact-sql.md)   
+ [ALTER TRIGGER &#40;Transact-SQL&#41;](../../t-sql/statements/alter-trigger-transact-sql.md)   
+ [COLUMNS_UPDATED &#40;Transact-SQL&#41;](../../t-sql/functions/columns-updated-transact-sql.md)   
+ [CREATE TABLE &#40;Transact-SQL&#41;](../../t-sql/statements/create-table-transact-sql.md)   
+ [DROP TRIGGER &#40;Transact-SQL&#41;](../../t-sql/statements/drop-trigger-transact-sql.md)   
+ [ENABLE TRIGGER &#40;Transact-SQL&#41;](../../t-sql/statements/enable-trigger-transact-sql.md)   
+ [DISABLE TRIGGER &#40;Transact-SQL&#41;](../../t-sql/statements/disable-trigger-transact-sql.md)   
+ [TRIGGER_NESTLEVEL &#40;Transact-SQL&#41;](../../t-sql/functions/trigger-nestlevel-transact-sql.md)   
+ [EVENTDATA &#40;Transact-SQL&#41;](../../t-sql/functions/eventdata-transact-sql.md)   
+ [sys.dm_sql_referenced_entities &#40;Transact-SQL&#41;](../../relational-databases/system-dynamic-management-views/sys-dm-sql-referenced-entities-transact-sql.md)   
+ [sys.dm_sql_referencing_entities &#40;Transact-SQL&#41;](../../relational-databases/system-dynamic-management-views/sys-dm-sql-referencing-entities-transact-sql.md)   
+ [sys.sql_expression_dependencies &#40;Transact-SQL&#41;](../../relational-databases/system-catalog-views/sys-sql-expression-dependencies-transact-sql.md)   
+ [sp_help &#40;Transact-SQL&#41;](../../relational-databases/system-stored-procedures/sp-help-transact-sql.md)   
+ [sp_helptrigger &#40;Transact-SQL&#41;](../../relational-databases/system-stored-procedures/sp-helptrigger-transact-sql.md)   
+ [sp_helptext &#40;Transact-SQL&#41;](../../relational-databases/system-stored-procedures/sp-helptext-transact-sql.md)   
+ [sp_rename &#40;Transact-SQL&#41;](../../relational-databases/system-stored-procedures/sp-rename-transact-sql.md)   
+ [sp_settriggerorder &#40;Transact-SQL&#41;](../../relational-databases/system-stored-procedures/sp-settriggerorder-transact-sql.md)   
+ [UPDATE&#40;&#41; &#40;Transact-SQL&#41;](../../t-sql/functions/update-trigger-functions-transact-sql.md)   
+ [Get Information About DML Triggers](../../relational-databases/triggers/get-information-about-dml-triggers.md)   
+ [Get Information About DDL Triggers](../../relational-databases/triggers/get-information-about-ddl-triggers.md)   
+ [sys.triggers &#40;Transact-SQL&#41;](../../relational-databases/system-catalog-views/sys-triggers-transact-sql.md)   
+ [sys.trigger_events &#40;Transact-SQL&#41;](../../relational-databases/system-catalog-views/sys-trigger-events-transact-sql.md)   
+ [sys.sql_modules &#40;Transact-SQL&#41;](../../relational-databases/system-catalog-views/sys-sql-modules-transact-sql.md)   
+ [sys.assembly_modules &#40;Transact-SQL&#41;](../../relational-databases/system-catalog-views/sys-assembly-modules-transact-sql.md)   
+ [sys.server_triggers &#40;Transact-SQL&#41;](../../relational-databases/system-catalog-views/sys-server-triggers-transact-sql.md)   
+ [sys.server_trigger_events &#40;Transact-SQL&#41;](../../relational-databases/system-catalog-views/sys-server-trigger-events-transact-sql.md)   
+ [sys.server_sql_modules &#40;Transact-SQL&#41;](../../relational-databases/system-catalog-views/sys-server-sql-modules-transact-sql.md)   
+ [sys.server_assembly_modules &#40;Transact-SQL&#41;](../../relational-databases/system-catalog-views/sys-server-assembly-modules-transact-sql.md)  
+  
+  
 
-For more information, see [GRANT (Transact-SQL](../t-sql/statements/grant-transact-sql.md).
 
-## Common Launchpad errors
 
-This section lists the most common error messages that Launchpad returns.
-
-## "Unable to launch runtime for R script"
-
-If the Windows group for R users (also used for Python) cannot log on to the instance that is running R Services, you might see the following errors:
-
-- Errors generated when you try to run R scripts:
-
-    * *Unable to launch runtime for 'R' script. Please check the configuration of the 'R' runtime.*
-
-    * *An external script error occurred. Unable to launch the runtime.*
-
-- Errors generated by the
-    [!INCLUDE[rsql_launchpad](../includes/rsql-launchpad-md.md)] service:
-
-    * *Failed to initialize the launcher RLauncher.dll*
-
-    * *No launcher dlls were registered!*
-
-    * *Security logs indicate that the account NT SERVICE was unable to log on*
-
-For information about how to grant this user group the necessary permissions, see [Install SQL Server 2016 R Services](install/sql-r-services-windows-install.md).
-
-> [!NOTE]
-> This limitation does not apply if you use SQL logins to run R scripts from a remote workstation.
-
-## "Logon failure: the user has not been granted the requested logon type"
-
-By default, [!INCLUDE[rsql_launchpad_md](../includes/rsql-launchpad-md.md)] uses the following account on startup: `NT Service\MSSQLLaunchpad`. The account is configured by [!INCLUDE[ssNoVersion_md](../includes/ssnoversion-md.md)] setup to have all necessary permissions.
-
-If you assign a different account to Launchpad, or the right is removed by a policy on the SQL Server machine, the account might not have the necessary permissions, and you might see this error:
-
->*ERROR_LOGON_TYPE_NOT_GRANTED 1385 (0x569) Logon failure: the user has not been granted the requested logon type at this computer.*
-
-To grant the necessary permissions to the new service account, use the Local Security Policy application, and update the permissions on the account to include the following permissions:
-
-+ Adjust memory quotas for a process (SeIncreaseQuotaPrivilege)
-+ Bypass traverse checking (SeChangeNotifyPrivilege)
-+ Log on as a service (SeServiceLogonRight)
-+ Replace a process-level token (SeAssignPrimaryTokenPrivilege)
-
-## "Unable to communicate with the Launchpad service"
-
-If you have installed and then enabled machine learning, but you get this error when you try to run an R or Python script, the Launchpad service for the instance might have stopped running.
-
-1. From a Windows command prompt, open the SQL Server Configuration Manager. For more information, see [SQL Server Configuration Manager](https://docs.microsoft.com/sql/relational-databases/sql-server-configuration-manager).
-
-2. Right-click SQL Server Launchpad for the instance, and then select **Properties**.
-
-3. Select the **Service** tab, and then verify that the service is running. If it is not running, change the **Start Mode** to **Automatic**, and then select **Apply**.
-
-4. Restarting the service usually fixes the problem so that machine learning scripts can run. If the restart does not fix the issue, note the path and the arguments in the **Binary Path** property, and do the following:
-
-    a. Review the launcher's .config file and ensure that the working directory is valid.
-
-    b. Ensure that the Windows group that's used by Launchpad can connect to the SQL Server instance.
-
-    c. If you change any of the service properties, restart the Launchpad service.
-
-## "Fatal error creation of tmpFile failed"
-
-In this scenario, you have successfully installed machine learning features, and Launchpad is running. You try to run some simple R or Python code, but Launchpad fails with an error like the following: 
-
->*Unable to communicate with the runtime for R script. Please check the requirements of R runtime.*
-
-At the same time, the external script runtime writes the following message as part of the STDERR message: 
-
->*Fatal error: creation of tmpfile failed.*
-
-This error indicates that the account that Launchpad is attempting to use does not have permission to log on to the database. This situation can happen when strict security policies are implemented. To determine whether this is the case, review the SQL Server logs, and check to see whether the MSSQLSERVER01 account was denied at login. The same information is provided in the logs that are specific to R\_SERVICES or PYTHON\_SERVICES. Look for ExtLaunchError.log.
-
-By default, 20 accounts are set up and associated with the Launchpad.exe process, with the names MSSQLSERVER01 through MSSQLSERVER20. If you make heavy use of R or Python, you can increase the number of accounts.
-
-To resolve the issue, ensure that the group has *Allow Log on Locally* permissions to the local instance where machine learning features have been installed and enabled. In some environments, this permission level might require a GPO exception from the network administrator.
-
-## "Not enough quota to process this command"
-
-This error can mean one of several things:
-
-- Launchpad might have insufficient external users to run the external query. For example, if you are running more than 20 external queries concurrently, and there are only 20 default users, one or more queries might fail.
-
-- Insufficient memory is available to process the R task. This error happens most often in a default environment, where SQL Server might be using up to 70 percent of the computer's resources. For information about how to modify the server configuration to support greater use of resources by R, see [Operationalizing your R code](r/operationalizing-your-r-code.md).
-
-## "Can't find package"
-
-If you run R code in SQL Server and get this message, but did not get the message when you ran the same code outside SQL Server, it means that the package was not installed to the default library location used by SQL Server.
-
-This error can happen in many ways:
-
-- You installed a new package on the server, but access was denied, so R installed the package to a user library.
-
-- You installed R Services and then installed another R tool or set of libraries, including Microsoft R Server (Standalone), Microsoft R Client, RStudio, and so forth.
-
-To determine the location of the R package library that's used by the instance, open SQL Server Management Studio (or any other database query tool), connect to the instance, and then run the following stored procedure:
-
-```sql
-EXEC sp_execute_external_script @language = N'R',  
-@script = N' print(normalizePath(R.home())); print(.libPaths());'; 
-```
-
-#### Sample results
-
-*STDOUT message(s) from external script:*
-
-*[1] "C:\\Program Files\\Microsoft SQL Server\\MSSQL13.SQL2016\\R_SERVICES"*
-
-*[1] "C:/Program Files/Microsoft SQL Server/MSSQL13.SQL2016/R_SERVICES/library"*
-
-To resolve the issue, you must reinstall the package to the SQL Server instance library.
-
->[!NOTE]
->If you have upgraded an instance of SQL Server 2016 to use the latest version of Microsoft R, the default library location is different. For more information, see [Use SqlBindR to upgrade an instance of R Services](r/use-sqlbindr-exe-to-upgrade-an-instance-of-sql-server.md).
-
-## Launchpad shuts down due to mismatched DLLs
-
-If you install the database engine with other features, patch the server, and then later add the Machine Learning feature by using the original media, the wrong version of the Machine Learning components might be installed. When Launchpad detects a version mismatch, it shuts down and creates a dump file.
-
-To avoid this problem, be sure to install any new features at the same patch level as the server instance.
-
-**The wrong way to upgrade:**
-
-1. Install SQL Server 2016 without R Services.
-2. Upgrade SQL Server 2016 Cumulative Update 2.
-3. Install R Services (In-Database) by using the RTM media.
-
-**The correct way to upgrade:**
-
-1. Install SQL Server 2016 without R Services.
-2. Upgrade SQL Server 2016 to the desired patch level. For example, install Service Pack 1 and then Cumulative Update 2.
-3. To add the feature at the correct patch level, run SP1 and CU2 setup again, and then choose R Services (In-Database). 
-
-## Launchpad fails to start if 8dot3 notation is required
-
-> [!NOTE] 
-> On older systems, Launchpad can fail to start if there is an 8dot3 notation requirement. This requirement has been removed in later releases. SQL Server 2016 R Services customers should install one of the following:
-> * SQL Server 2016 SP1 and CU1: [Cumulative Update 1 for SQL Server](https://support.microsoft.com/help/3208177/cumulative-update-1-for-sql-server-2016-sp1).
-> * SQL Server 2016 RTM, Cumulative Update 3, and this [hotfix](https://support.microsoft.com/help/3210110/on-demand-hotfix-update-package-for-sql-server-2016-cu3), which is available on demand.
-
-For compatibility with R, SQL Server 2016 R Services (In-Database) required the drive where the feature is installed to support the creation of short file names by using *8dot3 notation*. An 8.3 file name is also called a *short file name*, and it's used for compatibility with earlier versions of Microsoft Windows or as an alternative to long file names.
-
-If the volume where you are installing R does not support short file names, the processes that launch R from SQL Server might not be able to locate the correct executable, and Launchpad will not start.
-
-As a workaround, you can enable the 8dot3 notation on the volume where SQL Server is installed and where R Services is installed. You must then provide the short name for the working directory in the R Services configuration file.
-
-1. To enable 8dot3 notation, run the fsutil utility with the *8dot3name* argument as described here: [fsutil 8dot3name](https://technet.microsoft.com/library/ff621566(v=ws.11).aspx).
-
-2. After the 8dot3 notation is enabled, open the RLauncher.config file and note the property of `WORKING_DIRECTORY`. For information about how to find this file, see [Data collection for Machine Learning troubleshooting](data-collection-ml-troubleshooting-process.md).
-
-3. Use the fsutil utility with the *file* argument to specify a short file path for the folder that's specified in WORKING_DIRECTORY.
-
-4. Edit the configuration file to specify the same working directory that you entered in the WORKING_DIRECTORY property. Alternatively, you can specify a different working directory and choose an existing path that's already compatible with the 8dot3 notation.
-
-
-## Next steps
-
-[Machine Learning Services troubleshooting and known issues](machine-learning-troubleshooting-faq.md)
-
-[Data collection for troubleshooting machine learning](data-collection-ml-troubleshooting-process.md)
-
-[Upgrade and installation FAQ](r/upgrade-and-installation-faq-sql-server-r-services.md)
-
-[Troubleshoot database engine connections](../database-engine/configure-windows/troubleshoot-connecting-to-the-sql-server-database-engine.md)
